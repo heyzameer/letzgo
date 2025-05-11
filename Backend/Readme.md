@@ -168,3 +168,112 @@ An unexpected error occurred on the server.
 ### Notes
 - Ensure that the `Content-Type` header is set to `application/json` in the request.
 - The `Authorization` token is returned in the response and can be used for authenticated requests.
+
+## Endpoint: `/api/users/profile`
+
+### Description
+This endpoint is used to retrieve the profile of the authenticated user.
+
+### Method
+`GET`
+
+### Headers
+| Header            | Value           | Required | Description                          |
+|--------------------|-----------------|----------|--------------------------------------|
+| `Authorization`   | Bearer `<token>`| Yes      | The token obtained during login      |
+
+### Example Request
+```
+GET /api/users/profile HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Responses
+
+#### Success (200 OK)
+The user's profile is successfully retrieved.
+
+```json
+{
+  "user": {
+    "_id": "64f1c2e5e4b0a2d3c4e5f6g7",
+    "fullName": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "email": "john.doe@example.com"
+  }
+}
+```
+
+#### Authentication Error (401 Unauthorized)
+The token is missing or invalid.
+
+```json
+{
+  "message": "Authentication failed"
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "An error occurred while processing your request."
+}
+```
+
+---
+
+## Endpoint: `/api/users/logout`
+
+### Description
+This endpoint is used to log out the authenticated user by blacklisting their token.
+
+### Method
+`GET`
+
+### Headers
+| Header            | Value           | Required | Description                          |
+|--------------------|-----------------|----------|--------------------------------------|
+| `Authorization`   | Bearer `<token>`| Yes      | The token obtained during login      |
+
+### Example Request
+```
+GET /api/users/logout HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Responses
+
+#### Success (200 OK)
+The user is successfully logged out.
+
+```json
+{
+  "message": "Logout successful"
+}
+```
+
+#### Authentication Error (401 Unauthorized)
+The token is missing or invalid.
+
+```json
+{
+  "message": "Authentication failed"
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "An error occurred while processing your request."
+}
+```
+
+### Notes
+- Ensure that the `Authorization` header is set with a valid token.
+- The token will be blacklisted and cannot be used again after logout.
