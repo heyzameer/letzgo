@@ -82,3 +82,89 @@ An unexpected error occurred on the server.
 ### Notes
 - Ensure that the `Content-Type` header is set to `application/json` in the request.
 - The `Authorization` token is returned in the response and can be used for authenticated requests.
+
+## Endpoint: `/api/users/login`
+
+### Description
+This endpoint is used to authenticate a user. It validates the input data, checks the credentials, and returns a token if the login is successful.
+
+### Method
+`POST`
+
+### Request Body
+The request body must be in JSON format and include the following fields:
+
+| Field      | Type   | Required | Description                              |
+|------------|--------|----------|------------------------------------------|
+| `email`    | String | Yes      | The email address of the user           |
+| `password` | String | Yes      | The password for the user (min 6 chars) |
+
+### Example Request
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+```
+
+### Responses
+
+#### Success (200 OK)
+The user is successfully authenticated.
+
+```json
+{
+  "message": "Login successful",
+  "user": {
+    "_id": "64f1c2e5e4b0a2d3c4e5f6g7",
+    "fullName": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "email": "john.doe@example.com"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### Validation Error (400 Bad Request)
+The input data is invalid.
+
+```json
+{
+  "errors": [
+    {
+      "msg": "Invalid email format",
+      "param": "email",
+      "location": "body"
+    },
+    {
+      "msg": "Password must be at least 6 characters long",
+      "param": "password",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Authentication Error (401 Unauthorized)
+The email or password is incorrect.
+
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "An error occurred while processing your request."
+}
+```
+
+### Notes
+- Ensure that the `Content-Type` header is set to `application/json` in the request.
+- The `Authorization` token is returned in the response and can be used for authenticated requests.
