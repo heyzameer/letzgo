@@ -277,3 +277,111 @@ An unexpected error occurred on the server.
 ### Notes
 - Ensure that the `Authorization` header is set with a valid token.
 - The token will be blacklisted and cannot be used again after logout.
+
+## Endpoint: `/api/captains/register`
+
+### Description
+This endpoint is used to register a new captain in the system. It validates the input data, hashes the password, and creates a new captain in the database.
+
+### Method
+`POST`
+
+### Request Body
+The request body must be in JSON format and include the following fields:
+
+| Field                  | Type   | Required | Description                              |
+|------------------------|--------|----------|------------------------------------------|
+| `fullname.firstname`   | String | Yes      | The first name of the captain (min 3 chars) |
+| `fullname.lastname`    | String | No       | The last name of the captain (min 3 chars) |
+| `email`                | String | Yes      | The email address of the captain           |
+| `password`             | String | Yes      | The password for the captain (min 6 chars) |
+| `vehicle.color`        | String | Yes      | The color of the captain's vehicle (min 3 chars) |
+| `vehicle.plate`        | String | Yes      | The plate number of the captain's vehicle (min 3 chars) |
+| `vehicle.capacity`     | Number | Yes      | The capacity of the captain's vehicle (min 1) |
+| `vehicle.vehicleType`  | String | Yes      | The type of the captain's vehicle (`car`, `motorcycle`, or `auto`) |
+
+### Example Request
+```json
+{
+  "fullname": {
+    "firstname": "Jane",
+    "lastname": "Doe"
+  },
+  "email": "jane.doe@example.com",
+  "password": "securepassword",
+  "vehicle": {
+    "color": "Red",
+    "plate": "ABC123",
+    "capacity": 4,
+    "vehicleType": "car"
+  }
+}
+```
+
+### Responses
+
+#### Success (201 Created)
+The captain is successfully registered.
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "captain": {
+    "_id": "64f1c2e5e4b0a2d3c4e5f6g7",
+    "fullname": {
+      "firstname": "Jane",
+      "lastname": "Doe"
+    },
+    "email": "jane.doe@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    },
+    "status": "inactive"
+  }
+}
+```
+
+#### Validation Error (400 Bad Request)
+The input data is invalid or the captain already exists.
+
+```json
+{
+  "errors": [
+    {
+      "msg": "First name must be at least 3 characters long",
+      "param": "fullname.firstname",
+      "location": "body"
+    },
+    {
+      "msg": "Invalid Email",
+      "param": "email",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Conflict (400 Bad Request)
+The captain already exists.
+
+```json
+{
+  "message": "Captain already exist"
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "An error occurred while processing your request."
+}
+```
+
+### Notes
+- Ensure that the `Content-Type` header is set to `application/json` in the request.
+- The `Authorization` token is returned in the response and can be used for authenticated requests.
