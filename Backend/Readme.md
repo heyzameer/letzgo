@@ -385,3 +385,210 @@ An unexpected error occurred on the server.
 ### Notes
 - Ensure that the `Content-Type` header is set to `application/json` in the request.
 - The `Authorization` token is returned in the response and can be used for authenticated requests.
+
+## Endpoint: `/api/captains/login`
+
+### Description
+This endpoint is used to authenticate a captain. It validates the input data, checks the credentials, and returns a token if the login is successful.
+
+### Method
+`POST`
+
+### Request Body
+The request body must be in JSON format and include the following fields:
+
+| Field      | Type   | Required | Description                              |
+|------------|--------|----------|------------------------------------------|
+| `email`    | String | Yes      | The email address of the captain         |
+| `password` | String | Yes      | The password for the captain (min 6 chars) |
+
+### Example Request
+```json
+{
+  "email": "jane.doe@example.com",
+  "password": "securepassword"
+}
+```
+
+### Responses
+
+#### Success (200 OK)
+The captain is successfully authenticated.
+
+```json
+{
+  "message": "Login successful",
+  "captain": {
+    "_id": "64f1c2e5e4b0a2d3c4e5f6g7",
+    "fullname": {
+      "firstname": "Jane",
+      "lastname": "Doe"
+    },
+    "email": "jane.doe@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    },
+    "status": "inactive"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### Validation Error (400 Bad Request)
+The input data is invalid.
+
+```json
+{
+  "errors": [
+    {
+      "msg": "Invalid Email",
+      "param": "email",
+      "location": "body"
+    },
+    {
+      "msg": "Password must be at least 6 characters long",
+      "param": "password",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Authentication Error (401 Unauthorized)
+The email or password is incorrect.
+
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "An error occurred while processing your request."
+}
+```
+
+---
+
+## Endpoint: `/api/captains/profile`
+
+### Description
+This endpoint is used to retrieve the profile of the authenticated captain.
+
+### Method
+`GET`
+
+### Headers
+| Header            | Value           | Required | Description                          |
+|--------------------|-----------------|----------|--------------------------------------|
+| `Authorization`   | Bearer `<token>`| Yes      | The token obtained during login      |
+
+### Example Request
+```
+GET /api/captains/profile HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Responses
+
+#### Success (200 OK)
+The captain's profile is successfully retrieved.
+
+```json
+{
+  "captain": {
+    "_id": "64f1c2e5e4b0a2d3c4e5f6g7",
+    "fullname": {
+      "firstname": "Jane",
+      "lastname": "Doe"
+    },
+    "email": "jane.doe@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    },
+    "status": "inactive"
+  }
+}
+```
+
+#### Authentication Error (401 Unauthorized)
+The token is missing or invalid.
+
+```json
+{
+  "message": "Authentication failed"
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "An error occurred while processing your request."
+}
+```
+
+---
+
+## Endpoint: `/api/captains/logout`
+
+### Description
+This endpoint is used to log out the authenticated captain by blacklisting their token.
+
+### Method
+`GET`
+
+### Headers
+| Header            | Value           | Required | Description                          |
+|--------------------|-----------------|----------|--------------------------------------|
+| `Authorization`   | Bearer `<token>`| Yes      | The token obtained during login      |
+
+### Example Request
+```
+GET /api/captains/logout HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Responses
+
+#### Success (200 OK)
+The captain is successfully logged out, and the token is blacklisted.
+
+```json
+{
+  "message": "Logout successful"
+}
+```
+
+#### Authentication Error (401 Unauthorized)
+The token is missing or invalid.
+
+```json
+{
+  "message": "Authentication failed"
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "An error occurred while processing your request."
+}
+```
+
+### Notes
+- Ensure that the `Authorization` header is set with a valid token.
+- The token will be blacklisted and cannot be used again after logout.
