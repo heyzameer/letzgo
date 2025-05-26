@@ -23,9 +23,25 @@ const CaptainSignup = () => {
 
   const { captain, setCaptain } = React.useContext(CaptainDataContext)
 
+const validateForm = () => {
+  if (firstName.trim().length < 3) return "First name must be at least 3 characters long";
+  if (!/\S+@\S+\.\S+/.test(email)) return "Please enter a valid email";
+  if (password.length < 6) return "Password must be at least 6 characters long";
+  if (vehicleColor.trim().length < 3) return "Vehicle color must be at least 3 characters long";
+  if (vehiclePlate.trim().length < 3) return "Vehicle plate must be at least 3 characters long";
+  if (!Number(vehicleCapacity) || Number(vehicleCapacity) < 1) return "Vehicle capacity must be a number greater than 0";
+  if (!['car', 'auto', 'motorcycle', 'bike'].includes(vehicleType)) return "Select a valid vehicle type";
+  return null;
+};
 
 const submitHandler = async (e) => {
   e.preventDefault();
+
+  const validationError = validateForm();
+  if (validationError) {
+    setError(validationError);
+    return;
+  }
 
   const captainData = {
     fullname: {
@@ -52,7 +68,7 @@ const submitHandler = async (e) => {
       navigate('/captain-home');
     }
 
-    // Clear fields and error
+    // Clear form
     setEmail('');
     setFirstName('');
     setLastName('');
@@ -65,12 +81,13 @@ const submitHandler = async (e) => {
 
   } catch (err) {
     if (err.response && err.response.status === 400) {
-      setError(err.response.data.message || 'Something went wrong');
+      setError(err.response?.data?.errors?.[0]?.msg || err.response.data.message || 'Something went wrong');
     } else {
       setError('Server error. Please try again later.');
     }
   }
 };
+
 
   return (
     <div className='py-5 px-5 h-screen flex flex-col justify-between'>

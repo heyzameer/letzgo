@@ -160,7 +160,7 @@ const Home = () => {
           ref={panelRef}
           className='bg-white h-0 overflow-hidden transition-all duration-500'
         >
-          <LocationSearchPanel vehiclePanel={vehiclePanel} setVehiclePanel={setVehiclePanel} panelOpen={panelOpen} setPanelOpen={setPanelOpen} />
+            <LocationSearchPanel vehiclePanel={vehiclePanel} setVehiclePanel={setVehiclePanel} panelOpen={panelOpen} setPanelOpen={setPanelOpen} />
         </div>
       </div>
 

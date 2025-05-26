@@ -67,7 +67,7 @@ const captainSchema = new mongoose.Schema({
             type: Number,
         }
     }
-})
+},{ timestamps: true })
 
 
 captainSchema.methods.generateAuthToken = function () {
