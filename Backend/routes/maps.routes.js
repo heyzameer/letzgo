@@ -14,4 +14,9 @@ router.get('/get-distance-time',
     query('destination').isLength({ min: 3 }).withMessage('Destination is required'),
     auth.authUser, mapsController.getDistanceAndTime);
 
+
+router.get('/get-suggestions',
+    query('input').isLength({ min: 3 }).withMessage('Input is required'),
+    auth.authUser, mapsController.getAutoCompleteSuggestions
+);
 module.exports = router;
