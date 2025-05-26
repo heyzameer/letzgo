@@ -6,6 +6,7 @@ const cors = require('cors');
 const connectToDb = require('./db/db');
 const userRoutes = require('./routes/user.routes');
 const captainRoutes = require('./routes/captain.routes');
+const rideRoutes = require('./routes/rides.routes');
 const cookieParser = require('cookie-parser');
 
 const mapsRoutes = require('./routes/maps.routes');
@@ -24,5 +25,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', userRoutes);
 app.use('/api/captains', captainRoutes);
 app.use('/api/maps', mapsRoutes);
+app.use('/api/ride', rideRoutes);
 
 module.exports = app;
