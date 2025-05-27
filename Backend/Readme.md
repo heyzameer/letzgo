@@ -592,3 +592,311 @@ An unexpected error occurred on the server.
 ### Notes
 - Ensure that the `Authorization` header is set with a valid token.
 - The token will be blacklisted and cannot be used again after logout.
+
+## Endpoint: `/api/rides/create`
+
+### Description
+This endpoint is used to create a new ride request by a user.
+
+### Method
+`POST`
+
+### Headers
+| Header            | Value           | Required | Description                          |
+|--------------------|-----------------|----------|--------------------------------------|
+| `Authorization`   | Bearer `<token>`| Yes      | The token obtained during login      |
+
+### Request Body
+
+| Field         | Type   | Required | Description                                 |
+|---------------|--------|----------|---------------------------------------------|
+| `pickup`      | String | Yes      | The pickup address (min 3 chars)            |
+| `destination` | String | Yes      | The destination address (min 3 chars)       |
+| `vehicleType` | String | Yes      | The type of vehicle (`auto`, `car`, `moto`) |
+
+### Example Request
+```json
+{
+  "pickup": "123 Main St",
+  "destination": "456 Elm St",
+  "vehicleType": "car"
+}
+```
+
+### Responses
+
+#### Success (201 Created)
+The ride is successfully created.
+
+```json
+{
+  "_id": "65f1c2e5e4b0a2d3c4e5f6g7",
+  "user": "65f1c2e5e4b0a2d3c4e5f6g1",
+  "pickup": "123 Main St",
+  "destination": "456 Elm St",
+  "fare": 120,
+  "status": "pending",
+  "otp": "1234"
+}
+```
+
+#### Validation Error (422 Unprocessable Entity)
+The input data is invalid.
+
+```json
+{
+  "errors": [
+    {
+      "msg": "Invalid pickup address",
+      "param": "pickup",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "Internal server error"
+}
+```
+
+---
+
+## Endpoint: `/api/maps/get-coordinate`
+
+### Description
+Get latitude and longitude coordinates for a given address.
+
+### Method
+`GET`
+
+### Query Parameters
+
+| Parameter | Type   | Required | Description                  |
+|-----------|--------|----------|------------------------------|
+| `address` | String | Yes      | The address to geocode       |
+
+### Headers
+| Header            | Value           | Required | Description                          |
+|--------------------|-----------------|----------|--------------------------------------|
+| `Authorization`   | Bearer `<token>`| Yes      | The token obtained during login      |
+
+### Example Request
+```
+GET /api/maps/get-coordinate?address=123+Main+St
+Authorization: Bearer <token>
+```
+
+### Responses
+
+#### Success (200 OK)
+```json
+{
+  "lat": 12.9716,
+  "lng": 77.5946
+}
+```
+
+#### Validation Error (422 Unprocessable Entity)
+```json
+{
+  "errors": [
+    {
+      "msg": "Address is required",
+      "param": "address",
+      "location": "query"
+    }
+  ]
+}
+```
+
+#### Not Found (404)
+```json
+{
+  "message": "Coordinates not found"
+}
+```
+
+---
+
+## Endpoint: `/api/maps/get-distance-time`
+
+### Description
+Get distance and estimated travel time between two locations.
+
+### Method
+`GET`
+
+### Query Parameters
+
+| Parameter     | Type   | Required | Description                  |
+|---------------|--------|----------|------------------------------|
+| `origin`      | String | Yes      | The origin address           |
+| `destination` | String | Yes      | The destination address      |
+
+### Headers
+| Header            | Value           | Required | Description                          |
+|--------------------|-----------------|----------|--------------------------------------|
+| `Authorization`   | Bearer `<token>`| Yes      | The token obtained during login      |
+
+### Example Request
+```
+GET /api/maps/get-distance-time?origin=123+Main+St&destination=456+Elm+St
+Authorization: Bearer <token>
+```
+
+### Responses
+
+#### Success (200 OK)
+```json
+{
+  "element": {
+    "distance": { "text": "5.2 km", "value": 5200 },
+    "duration": { "text": "12 mins", "value": 720 }
+  }
+}
+```
+
+#### Validation Error (422 Unprocessable Entity)
+```json
+{
+  "errors": [
+    {
+      "msg": "Origin is required",
+      "param": "origin",
+      "location": "query"
+    }
+  ]
+}
+```
+
+#### Not Found (404)
+```json
+{
+  "message": "Distance and time not found"
+}
+```
+
+---
+
+## Endpoint: `/api/maps/get-suggestions`
+
+### Description
+Get address autocomplete suggestions for a given input string.
+
+### Method
+`GET`
+
+### Query Parameters
+
+| Parameter | Type   | Required | Description                  |
+|-----------|--------|----------|------------------------------|
+| `input`   | String | Yes      | The partial address input    |
+
+### Headers
+| Header            | Value           | Required | Description                          |
+|--------------------|-----------------|----------|--------------------------------------|
+| `Authorization`   | Bearer `<token>`| Yes      | The token obtained during login      |
+
+### Example Request
+```
+GET /api/maps/get-suggestions?input=Main
+Authorization: Bearer <token>
+```
+
+### Responses
+
+#### Success (200 OK)
+```json
+{
+  "suggestions": [
+    "123 Main St, City, Country",
+    "124 Main St, City, Country"
+  ]
+}
+```
+
+#### Validation Error (422 Unprocessable Entity)
+```json
+{
+  "errors": [
+    {
+      "msg": "Input is required",
+      "param": "input",
+      "location": "query"
+    }
+  ]
+}
+```
+
+#### Not Found (404)
+```json
+{
+  "message": "Suggestions not found"
+}
+```
+
+---
+
+## Endpoint: `/api/rides/get-fare`
+
+### Description
+Get fare estimates for a ride between a pickup and destination location.
+
+### Method
+`GET`
+
+### Query Parameters
+
+| Parameter     | Type   | Required | Description                  |
+|---------------|--------|----------|------------------------------|
+| `pickup`      | String | Yes      | The pickup address           |
+| `destination` | String | Yes      | The destination address      |
+
+### Headers
+| Header            | Value           | Required | Description                          |
+|--------------------|-----------------|----------|--------------------------------------|
+| `Authorization`   | Bearer `<token>`| Yes      | The token obtained during login      |
+
+### Example Request
+```
+GET /api/rides/get-fare?pickup=123+Main+St&destination=456+Elm+St
+Authorization: Bearer <token>
+```
+
+### Responses
+
+#### Success (200 OK)
+Returns fare estimates for each vehicle type.
+
+```json
+{
+  "auto": 50,
+  "car": 80,
+  "moto": 35
+}
+```
+
+#### Validation Error (400 Bad Request)
+```json
+{
+  "errors": [
+    {
+      "msg": "Pickup and destination are required",
+      "param": "pickup",
+      "location": "query"
+    }
+  ]
+}
+```
+
+#### Server Error (500 Internal Server Error)
+```json
+{
+  "message": "Error message"
+}
+```
