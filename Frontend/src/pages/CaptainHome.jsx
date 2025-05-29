@@ -6,6 +6,10 @@ import RidePopUp from '../components/RidePopUp'
 import ConfirmRidePopUp from '../components/ConfirmRidePopUp'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
+import { SocketContext } from '../context/SocketContext'
+import { CaptainDataContext } from '../context/CaptainContext'
+import { useContext } from 'react'
+import { useEffect } from 'react'
 
 
 const CaptainHome = () => {
@@ -16,29 +20,60 @@ const CaptainHome = () => {
   const confirmRidePopupPanelRef = useRef(null)
   const [ride, setRide] = useState(null)
 
-    useGSAP(function () {
-        if (ridePopupPanel) {
-            gsap.to(ridePopupPanelRef.current, {
-                transform: 'translateY(0)'
-            })
-        } else {
-            gsap.to(ridePopupPanelRef.current, {
-                transform: 'translateY(100%)'
-            })
-        }
-    }, [ ridePopupPanel ])
+  const { socket } = useContext(SocketContext)
+  const { captain } = useContext(CaptainDataContext)
 
-    useGSAP(function () {
-        if (confirmRidePopupPanel) {
-            gsap.to(confirmRidePopupPanelRef.current, {
-                transform: 'translateY(0)'
-            })
-        } else {
-            gsap.to(confirmRidePopupPanelRef.current, {
-                transform: 'translateY(100%)'
-            })
-        }
-    }, [ confirmRidePopupPanel ])
+  useEffect(() => {
+    console.log("Captain complete data:", captain);
+    socket.emit('join', { userType: "captain", userId: captain?._id });
+
+    const updateLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+
+          socket.emit('update-location-captain', {
+            userId: captain._id,
+            location: {
+              ltd: position.coords.latitude,
+              lng: position.coords.longitude
+            }
+          })
+        })
+      }
+    }
+
+    // const locationInterval = setInterval(updateLocation, 10000)
+    // updateLocation()
+    // return () => {
+    //   clearInterval(locationInterval)
+    // }
+
+  }, [captain])
+
+
+  useGSAP(function () {
+    if (ridePopupPanel) {
+      gsap.to(ridePopupPanelRef.current, {
+        transform: 'translateY(0)'
+      })
+    } else {
+      gsap.to(ridePopupPanelRef.current, {
+        transform: 'translateY(100%)'
+      })
+    }
+  }, [ridePopupPanel])
+
+  useGSAP(function () {
+    if (confirmRidePopupPanel) {
+      gsap.to(confirmRidePopupPanelRef.current, {
+        transform: 'translateY(0)'
+      })
+    } else {
+      gsap.to(confirmRidePopupPanelRef.current, {
+        transform: 'translateY(100%)'
+      })
+    }
+  }, [confirmRidePopupPanel])
 
 
   return (
@@ -58,9 +93,9 @@ const CaptainHome = () => {
       </div>
       <div ref={ridePopupPanelRef} className='fixed w-full z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
         <RidePopUp
-        // ride={ride}
-        setRidePopupPanel={setRidePopupPanel}
-        setConfirmRidePopupPanel={setConfirmRidePopupPanel}
+          // ride={ride}
+          setRidePopupPanel={setRidePopupPanel}
+          setConfirmRidePopupPanel={setConfirmRidePopupPanel}
         // confirmRide={confirmRide}
         />
       </div>
@@ -71,7 +106,7 @@ const CaptainHome = () => {
           setConfirmRidePopupPanel={setConfirmRidePopupPanel} setRidePopupPanel={setRidePopupPanel} />
       </div>
 
-      
+
     </div>
   )
 }

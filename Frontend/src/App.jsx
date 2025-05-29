@@ -13,10 +13,11 @@ import CaptainProtectWrapper from './pages/CaptainProtectWrapper'
 import Riding from './pages/Riding'
 import CaptainRiding from './pages/CaptainRiding'
 import 'remixicon/fonts/remixicon.css'
+import './App.css';
 
 const App = () => {
   return (
-    <div>
+    <div  className="app-container">
       <Routes>
         <Route path="/" element={<Start/>} />
         <Route path="/signup" element={<UserSignup/>} />
