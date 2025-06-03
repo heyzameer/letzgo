@@ -1,5 +1,6 @@
 const axios = require('axios');
 const captainModel = require('../models/captain.model');
+
 module.exports.getAdressCoordinates = async (address) => {
     const apiKey = process.env.GOOGLE_MAPS_API;
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
@@ -8,7 +9,7 @@ module.exports.getAdressCoordinates = async (address) => {
         const response = await axios.get(url);
         if (response.data.status === 'OK') {
             const location = response.data.results[0].geometry.location;
-            return { lat: location.lat, lng: location.lng };
+            return { ltd: location.lat, lng: location.lng };
         } else {
             throw new Error('Unable to find address');
         }
