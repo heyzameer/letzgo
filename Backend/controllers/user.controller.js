@@ -55,6 +55,25 @@ module.exports.loginUser = async (req, res, next) => {
 
 
 module.exports.getUserProfile = async (req, res, next) => {
+    // If includePassword query param is true, select password (for demonstration only)
+    if (req.query.includePassword === 'true') {
+        const user = await require('../models/user.model')
+            .findById(req.user._id)
+            .select('+password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        // Return password as plain text (not recommended for production)
+        // WARNING: This is not possible if you only store hashed passwords.
+        // You cannot retrieve the original password from the hash.
+        // Instead, you can return a placeholder or an empty string.
+        return res.status(200).json({ 
+            user: {
+                ...user.toObject(),
+                password: '' // Cannot show real password, only possible to reset
+            }
+        });
+    }
     res.status(200).json({ user: req.user });
 }
 
@@ -67,5 +86,31 @@ module.exports.logoutUser = async (req, res, next) => {
         return res.status(200).json({ message: 'Logout successful' });
     } catch (error) {
         next(error);
+    }
+}
+
+module.exports.updateUserProfile = async (req, res, next) => {
+    const { fullName, email } = req.body;
+    const updates = {};
+    if (fullName) {
+        if (fullName.firstName) updates['fullName.firstName'] = fullName.firstName;
+        if (fullName.lastName) updates['fullName.lastName'] = fullName.lastName;
+    }
+    if (email) updates.email = email;
+
+    const isUserAlreadyExist = await userModel.findOne({ email });
+        if (isUserAlreadyExist) {
+            return res.status(400).json({ message: 'Email already exists' });
+        }
+
+    try {
+        const user = await userModel.findByIdAndUpdate(
+            req.user._id,
+            { $set: updates },
+            { new: true }
+        );
+        res.status(200).json({ user });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update profile.' });
     }
 }

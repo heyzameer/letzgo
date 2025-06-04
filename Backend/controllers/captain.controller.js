@@ -69,7 +69,44 @@ module.exports.loginCaptain = async (req, res, next) => {
 }
 
 module.exports.getCaptainProfile = async (req, res, next) => {
-    res.status(200).json({ captain: req.captain });
+    // Always include password as empty string for frontend compatibility
+    const captainObj = req.captain.toObject ? req.captain.toObject() : req.captain;
+    res.status(200).json({ captain: { ...captainObj, password: '' } });
+}
+
+module.exports.updateCaptainProfile = async (req, res, next) => {
+    const { fullname, email, vehicle } = req.body;
+    const updates = {};
+    if (fullname) {
+        if (fullname.firstname) updates['fullname.firstname'] = fullname.firstname;
+        if (fullname.lastname) updates['fullname.lastname'] = fullname.lastname;
+    }
+    if (email) updates.email = email;
+    if (vehicle) {
+        if (vehicle.color) updates['vehicle.color'] = vehicle.color;
+        if (vehicle.plate) updates['vehicle.plate'] = vehicle.plate;
+        if (vehicle.capacity) updates['vehicle.capacity'] = vehicle.capacity;
+        if (vehicle.vehicleType) updates['vehicle.vehicleType'] = vehicle.vehicleType;
+    }
+
+    const isCaptainAlreadyExist = await captainModel.findOne({ email });
+
+    if (isCaptainAlreadyExist) {
+        return res.status(400).json({ message: 'Captain already exist' });
+    }
+
+    try {
+        const captain = await captainModel.findByIdAndUpdate(
+            req.captain._id,
+            { $set: updates },
+            { new: true }
+        );
+        // Always include password as empty string for frontend compatibility
+        const captainObj = captain.toObject ? captain.toObject() : captain;
+        res.status(200).json({ captain: { ...captainObj, password: '' } });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update profile.' });
+    }
 }
 
 module.exports.logoutCaptain = async (req, res, next) => {

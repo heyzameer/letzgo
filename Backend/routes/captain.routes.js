@@ -23,6 +23,20 @@ router.post('/login', [
 
 router.get('/profile',auth.authCaptain, captainController.getCaptainProfile);
 
+router.put('/profile',
+    auth.authCaptain,
+    [
+        body('fullname.firstname').optional().isLength({ min: 3 }).withMessage('First name must be at least 3 characters long'),
+        body('fullname.lastname').optional().isLength({ min: 3 }).withMessage('Last name must be at least 3 characters long'),
+        body('email').optional().isEmail().withMessage('Invalid email format'),
+        body('vehicle.color').optional().isLength({ min: 3 }).withMessage('Color must be at least 3 characters long'),
+        body('vehicle.plate').optional().isLength({ min: 3 }).withMessage('Plate must be at least 3 characters long'),
+        body('vehicle.capacity').optional().isInt({ min: 1 }).withMessage('Capacity must be at least 1'),
+        body('vehicle.vehicleType').optional().isIn([ 'car', 'motorcycle', 'auto' ]).withMessage('Invalid vehicle type')
+    ],
+    captainController.updateCaptainProfile
+);
+
 router.get('/logout', auth.authCaptain, captainController.logoutCaptain);
 
 module.exports = router;

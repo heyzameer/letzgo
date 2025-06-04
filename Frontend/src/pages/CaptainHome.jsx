@@ -72,6 +72,8 @@ const CaptainHome = () => {
       }
     });
 
+    console.log("req sent from captain fro ride")
+
     setRidePopupPanel(false);
     setConfirmRidePopupPanel(true);
 
@@ -111,9 +113,9 @@ const CaptainHome = () => {
     <div className='h-screen'>
       <div className='fixed p-6 top-0 flex items-center justify-between w-screen'>
         <img className='w-16' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
-        <Link to='/captain-home' className=' h-10 w-10 bg-white flex items-center justify-center rounded-full'>
+        {/* <Link to='/captain-home' className=' h-10 w-10 bg-white flex items-center justify-center rounded-full'>
           <i className="text-lg font-medium ri-logout-box-r-line"></i>
-        </Link>
+        </Link> */}
       </div>
       <div className='h-3/5'>
             <LiveTracking />
@@ -122,7 +124,9 @@ const CaptainHome = () => {
       </div>
 
       <div className='h-2/5 p-6'>
-        <CaptainDetails />
+        <CaptainDetails 
+        ridePopupPanel={ridePopupPanel}
+        confirmRidePopupPanel={confirmRidePopupPanel}/>
       </div>
       <div ref={ridePopupPanelRef} className='fixed w-full z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
         <RidePopUp

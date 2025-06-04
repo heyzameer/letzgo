@@ -18,8 +18,22 @@ router.post('/login', [
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
 ], userController.loginUser);
 
-router.get('/profile',authMiddleware.authUser, userController.getUserProfile);
+router.get('/profile',
+    authMiddleware.authUser,
+    userController.getUserProfile
+);
 
 router.get('/logout', authMiddleware.authUser, userController.logoutUser);
+
+router.put('/profile',
+    authMiddleware.authUser,
+    [
+        body('fullName.firstName').optional().isLength({ min: 3 }).withMessage('First name must be at least 3 characters long'),
+        body('fullName.lastName').optional().isLength({ min: 3 }).withMessage('Last name must be at least 3 characters long'),
+        body('email').optional().isEmail().withMessage('Invalid email format'),
+        body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
+    ],
+    userController.updateUserProfile
+);
 
 module.exports = router;

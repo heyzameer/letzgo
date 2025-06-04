@@ -6,28 +6,35 @@ import { useNavigate } from 'react-router-dom'
 const ConfirmRidePopUp = (props) => {
     console.log("ConfirmRidePopUp props:", props);
     const [ otp, setOtp ] = useState('')
+    const [ error, setError ] = useState('');
     const navigate = useNavigate()
+    
 
     const submitHander = async (e) => {
         e.preventDefault()
+        setError('');
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/ride/start-ride`, {
+                params: {
+                    rideId: props.ride._id,
+                    otp: otp
+                },
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            })
 
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/ride/start-ride`, {
-            params: {
-                rideId: props.ride._id,
-                otp: otp
-            },
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
+            if (response.status === 200) {
+                props.setConfirmRidePopupPanel(false)
+                props.setRidePopupPanel(false)
+                navigate('/captain-riding', { state: { ride: props.ride } })
             }
-        })
-
-        if (response.status === 200) {
-            props.setConfirmRidePopupPanel(false)
-            props.setRidePopupPanel(false)
-            navigate('/captain-riding', { state: { ride: props.ride } })
+        } catch (err) {
+            setError(
+                err?.response?.data?.message ||
+                'Invalid OTP or server error. Please try again.'
+            );
         }
-
-
     }
     return (
         <div>
@@ -69,6 +76,11 @@ const ConfirmRidePopUp = (props) => {
 
                 <div className='mt-6 w-full'>
                     <form onSubmit={submitHander}>
+                        {error && (
+                            <div className="bg-red-100 text-red-700 px-4 py-2 mb-2 rounded">
+                                {error}
+                            </div>
+                        )}
                         <input value={otp} onChange={(e) => setOtp(e.target.value)} type="text" className='bg-[#eee] px-6 py-4 font-mono text-lg rounded-lg w-full mt-3' placeholder='Enter OTP' />
 
                         <button to='/captain-riding'className='w-full mt-5 text-lg flex justify-center bg-green-600 text-white font-semibold p-3 rounded-lg'>Confirm</button>
