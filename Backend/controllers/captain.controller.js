@@ -3,6 +3,10 @@ const captainModel = require('../models/captain.model');
 
 const captainService = require('../services/captain.service');
 const { body, validationResult } = require('express-validator');
+const nodemailer = require('nodemailer');
+
+// In-memory OTP store (for demo; use DB or cache in production)
+const otpStore = {};
 
 module.exports.registerCaptain = async (req, res, next) => {
 
@@ -119,3 +123,57 @@ module.exports.logoutCaptain = async (req, res, next) => {
         next(error);
     }
 }
+
+module.exports.forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    const captain = await captainModel.findOne({ email });
+    if (!captain) {
+        return res.status(404).json({ message: 'Captain not found' });
+    }
+    console.log("Sending OTP to:", email);
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log("Generated OTP:", otp);
+    // Save OTP in memory (for demo; use DB or cache in production)
+    otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 }; // 10 min expiry
+
+    // Send OTP via email using nodemailer
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'sunbe3235@gmail.com', // set in .env
+            pass: 'ruyv zodh etse vwmw'  
+        }
+    });
+
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Captain Password Reset OTP',
+        text: `Your OTP for password reset is: ${otp}`
+    });
+
+    res.status(200).json({ message: 'OTP sent to your email.' });
+};
+
+module.exports.resetPassword = async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    const record = otpStore[email];
+    if (!record || record.otp !== otp || Date.now() > record.expires) {
+        return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+
+    const captain = await captainModel.findOne({ email });
+    if (!captain) {
+        return res.status(404).json({ message: 'Captain not found' });
+    }
+
+    const hashedPassword = await captainModel.hashPassword(newPassword);
+    captain.password = hashedPassword;
+    await captain.save();
+
+    // Remove OTP after use
+    delete otpStore[email];
+
+    res.status(200).json({ message: 'Password updated successfully.' });
+};

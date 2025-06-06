@@ -39,4 +39,16 @@ router.put('/profile',
 
 router.get('/logout', auth.authCaptain, captainController.logoutCaptain);
 
+router.post('/forgot-password',
+    body('email').isEmail().withMessage('Invalid Email'),
+    captainController.forgotPassword
+);
+
+router.post('/reset-password',
+    body('email').isEmail().withMessage('Invalid Email'),
+    body('otp').isLength({ min: 4, max: 8 }).withMessage('Invalid OTP'),
+    body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+    captainController.resetPassword
+);
+
 module.exports = router;

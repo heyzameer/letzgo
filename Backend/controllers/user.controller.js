@@ -2,6 +2,10 @@ const userModel = require('../models/user.model');
 const userService = require('../services/user.service');
 const { validationResult } = require('express-validator');
 const blacklistTokenModel = require('../models/blacklistToken.model');
+const nodemailer = require('nodemailer');
+
+// In-memory OTP store (for demo; use DB or cache in production)
+const otpStore = {};
 
 module.exports.registerUser = async (req, res, next) => {
     const errors = validationResult(req);
@@ -56,6 +60,7 @@ module.exports.loginUser = async (req, res, next) => {
 
 module.exports.getUserProfile = async (req, res, next) => {
     // If includePassword query param is true, select password (for demonstration only)
+    console.log('includePassword query param:', req.query.includePassword);
     if (req.query.includePassword === 'true') {
         const user = await require('../models/user.model')
             .findById(req.user._id)
@@ -98,10 +103,13 @@ module.exports.updateUserProfile = async (req, res, next) => {
     }
     if (email) updates.email = email;
 
-    const isUserAlreadyExist = await userModel.findOne({ email });
+    // Only check for existing user if the email is different from the current user's email
+    if (email && email !== req.user.email) {
+        const isUserAlreadyExist = await userModel.findOne({ email });
         if (isUserAlreadyExist) {
             return res.status(400).json({ message: 'Email already exists' });
         }
+    }
 
     try {
         const user = await userModel.findByIdAndUpdate(
@@ -114,3 +122,59 @@ module.exports.updateUserProfile = async (req, res, next) => {
         res.status(500).json({ message: 'Failed to update profile.' });
     }
 }
+
+module.exports.forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    const user = await userModel.findOne({ email });
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('Sending OTP to:', email);
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Save OTP in memory (for demo; use DB or cache for production)
+    otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 }; // 10 min expiry
+
+    console.log('Generated OTP:', otp);
+    // Send OTP via email using nodemailer
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
+
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'User Password Reset OTP',
+        text: `Your OTP for password reset is: ${otp}`
+    });
+
+    res.status(200).json({ message: 'OTP sent to your email.' });
+};
+
+module.exports.resetPassword = async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    const record = otpStore[email];
+    if (!record || record.otp !== otp || Date.now() > record.expires) {
+        return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+
+    const user = await userModel.findOne({ email });
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    const hashedPassword = await userModel.hashPassword(newPassword);
+    user.password = hashedPassword;
+    await user.save();
+
+    // Remove OTP after use
+    delete otpStore[email];
+
+    res.status(200).json({ message: 'Password updated successfully.' });
+};
