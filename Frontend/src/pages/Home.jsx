@@ -47,7 +47,7 @@ const Home = () => {
 
   useEffect(() => {
     console.log("User complete data:", user);
-    socket.emit('join', { userType: "user", userId: user?.user._id });
+    socket.emit('join', { userType: "user", userId: user?.user?._id });
   }, [user]);
 
 

@@ -71,7 +71,12 @@ const UserLogin = () => {
             type="password"
             placeholder='password'
           />
-
+          {/* Forgot Password link */}
+          <div className="mb-7 text-right">
+            <Link to="/user-forgot-password" className="text-blue-600 text-sm hover:underline">
+              Forgot Password?
+            </Link>
+          </div>
           <button
             className='bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
           >Login</button>

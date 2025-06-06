@@ -41,7 +41,7 @@ const CaptainProtectWrapper = ({
 
     if (isLoading) {
         return (
-            <div>Loading...</div>
+            <div>Captain Loading...</div>
         )
     }
 

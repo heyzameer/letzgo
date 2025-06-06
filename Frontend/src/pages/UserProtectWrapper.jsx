@@ -35,7 +35,7 @@ const UserProtectWrapper = ({
 
     if (isLoading) {
         return (
-            <div>Loading...</div>
+            <div>User Loading...</div>
         )
     }
 

@@ -64,11 +64,16 @@ const Captainlogin = () => {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
+            className='bg-[#eeeeee] mb-2 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
             type="password"
             placeholder='password'
           />
-
+          {/* Forgot Password link */}
+          <div className="mb-7 text-right">
+            <Link to="/captain-forgot-password" className="text-blue-600 text-sm hover:underline">
+              Forgot Password?
+            </Link>
+          </div>
           <button
             className='bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
           >Login</button>
