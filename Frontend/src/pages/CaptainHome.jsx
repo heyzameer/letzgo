@@ -110,25 +110,18 @@ const CaptainHome = () => {
 
 
   return (
-    <div className='h-screen pt-10    '>
-      <div className='fixed p-6 top-0 flex items-center justify-between w-screen'>
-        <img className='w-16' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
-        {/* <Link to='/captain-home' className=' h-10 w-10 bg-white flex items-center justify-center rounded-full'>
-          <i className="text-lg font-medium ri-logout-box-r-line"></i>
-        </Link> */}
-      </div>
+    <div className='h-screen'>
       <div className='h-3/5'>
         <LiveTracking />
       </div>
 
-
-      <div className='h-2/5 p-6 w-[910px]'>
+      <div className='h-2/5 p-6 '>
         <CaptainDetails 
         captain={captain}
         ridePopupPanel={ridePopupPanel}
         confirmRidePopupPanel={confirmRidePopupPanel}/>
       </div>
-      <div ref={ridePopupPanelRef} className='fixed w-[910px] z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
+      <div ref={ridePopupPanelRef} className='fixed z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
         <RidePopUp
           ride={ride}
           setRidePopupPanel={setRidePopupPanel}
@@ -137,7 +130,7 @@ const CaptainHome = () => {
         />
       </div>
 
-      <div ref={confirmRidePopupPanelRef} className='fixed w-[910px] h-screen z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
+      <div ref={confirmRidePopupPanelRef} className='fixed  h-screen z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
         <ConfirmRidePopUp
           ride={ride}
           setConfirmRidePopupPanel={setConfirmRidePopupPanel} setRidePopupPanel={setRidePopupPanel} />

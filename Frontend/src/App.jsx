@@ -16,16 +16,20 @@ import 'remixicon/fonts/remixicon.css'
 import './App.css';
 import UserProfile from './pages/UserProfile'
 import CaptainProfile from './pages/CaptainProfile'
+import CaptainForgotPassword from './pages/CaptainForgotPassword'
+import UserForgotPassword from './pages/UserForgotPassword'
 
 const App = () => {
   return (
     <div className="app-container">
-       <div className="w-screen h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-[910px] h-[935px] bg-white shadow-lg overflow-hidden rounded-xl">
+       <div className="w-screen h-screen flex items-center justify-center">
+      <div className="w-[910px]  bg-white  overflow-auto scrollbar-hide">
       <Routes>
         <Route path="/" element={<Start />} />
         <Route path="/signup" element={<UserSignup />} />
         <Route path="/login" element={<UserLogin />} />
+        <Route path="/user-forgot-password" element={<UserForgotPassword />} />
+        <Route path="/captain-forgot-password" element={<CaptainForgotPassword />} />
         <Route path="/riding" element={<Riding />} />
         <Route path="/captain-signup" element={<CaptainSignup />} />
         <Route path="/captain-login" element={<CaptainLogin />} />
@@ -56,4 +60,4 @@ const App = () => {
   )
 }
 
-export default App  
+export default App

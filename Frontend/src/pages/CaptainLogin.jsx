@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { CaptainDataContext } from '../context/CaptainContext'
+import logo from '../assets/logoblack.png'
 
 const Captainlogin = () => {
   const [email, setEmail] = useState('')
@@ -40,8 +41,11 @@ const Captainlogin = () => {
   return (
     <div className='p-7 h-screen flex flex-col justify-between'>
       <div>
-        <img className='w-20 mb-3' src="https://www.svgrepo.com/show/505031/uber-driver.svg" alt="" />
-
+<img
+          className="w-30 h-30 object-contain "
+          src={logo}
+          alt="LetzGo Logo"
+        />
         <form onSubmit={submitHandler}>
           {error && (
             <div className="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded">
@@ -64,7 +68,7 @@ const Captainlogin = () => {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className='bg-[#eeeeee] mb-2 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
+            className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
             type="password"
             placeholder='password'
           />

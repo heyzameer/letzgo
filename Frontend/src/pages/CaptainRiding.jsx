@@ -24,19 +24,13 @@ const CaptainRiding = () => {
     }, [finishRidePanel])
 
     return (
-        <div className='h-full w-full flex flex-col bg-white relative'>
+        <div className='h-screen'>
             {/* Map at the top */}
             <div className='w-full' style={{ height: '79%' }}>
                 <LiveTracking />
             </div>
 
-            {/* Top bar overlay */}
-            <div className='absolute p-6 top-0 flex items-center justify-between w-full z-10'>
-                <img className='w-16' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
-                <Link to='/captain-home' className='h-10 w-10 bg-white flex items-center justify-center rounded-full'>
-                    <i className="text-lg font-medium ri-logout-box-r-line"></i>
-                </Link>
-            </div>
+          
 
             {/* Complete Ride panel at the bottom */}
             <div className='w-full flex-1 flex flex-col justify-end'>
@@ -48,14 +42,15 @@ const CaptainRiding = () => {
                         <i className="text-3xl text-gray-800 ri-arrow-up-wide-line"></i>
                     </h5>
                     <h4 className='text-xl font-semibold'>{rideData?.distance ? `${(rideData.distance / 1000).toFixed(1)} KM away` : 'Ride in progress'}</h4>
-                    <button className='bg-green-600 text-white font-semibold p-3 px-10 rounded-lg'>Complete Ride</button>
+                    {!finishRidePanel && (<button className='bg-green-600 text-white font-semibold p-3 px-10 rounded-lg'>Complete Ride</button>
+)}
                 </div>
             </div>
 
             {/* Finish Ride popup panel */}
             <div
                 ref={finishRidePanelRef}
-                className='fixed w-[910px] z-[500] bottom-0 translate-y-full bg-white px-3 py-10 pt-12'
+                className='fixed z-[500] bottom-0 translate-y-full bg-white px-3 py-10 pt-12'
             >
                 <FinishRide
                     ride={rideData}

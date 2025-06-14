@@ -16,7 +16,7 @@ const VehiclePanel = (props) => {
             }} className=' active:border-2 border-gray-400 bg-gray-100 rounded-xl mb-2 flex w-full p-3 items-center justify-between'>
                 <img className='h-12' src='https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,h_368,w_552/v1714472148/assets/95/a05538-918b-42d8-afe7-3c92325f2fd4/original/UberLux.png' />
                 <div className='w-1/2 ml-1/2'>
-                    <h4 className='font-medium text-base'>UberGo <span><i className='ri-user-3-fill'></i>4</span></h4>
+                    <h4 className='font-medium text-base'>Car <span><i className='ri-user-3-fill'></i>4</span></h4>
                     <h5 className='font-medium text-sm'>2 mins away</h5>
                     <p className='font-medium text-xs text-gray-600'>Affordable compact ride</p>
                 </div>

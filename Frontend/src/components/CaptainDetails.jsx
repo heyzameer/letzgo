@@ -18,7 +18,7 @@ const CaptainDetails = () => {
             // ignore error, proceed to logout anyway
         }
         localStorage.removeItem('token');
-        navigate('/login', { replace: true });
+        navigate('/captain-login', { replace: true });
     };
 
     const { captain } = useContext(CaptainDataContext)
@@ -26,33 +26,31 @@ const CaptainDetails = () => {
     return (
         <div >
             <div className='flex items-center justify-between w-[910px]'>
-  <div className='flex items-center gap-4'>
-    {/* Profile Picture (optional) */}
-    {/* <img className='h-10 w-10 rounded-full object-cover' src="..." alt="" /> */}
+                <div className='flex items-center gap-4'>
+                 
+                    {/* Captain Name */}
+                    <h4 className='text-lg font-medium capitalize'>
+                        {captain.fullname.firstname + " " + captain.fullname.lastname}
+                    </h4>
 
-    {/* Captain Name */}
-    <h4 className='text-lg font-medium capitalize'>
-      {captain.fullname.firstname + " " + captain.fullname.lastname}
-    </h4>
+                    {/* Icons side by side */}
+                    <div className='flex gap-3 ml-6'>
+                        <i
+                            className="ri-profile-line text-2xl cursor-pointer"
+                            style={{ color: '#222' }}
+                            onClick={() => navigate('/captain-profile')}
+                        ></i>
+                        <i
+                            className="ri-logout-box-line text-2xl cursor-pointer"
+                            style={{ color: '#222' }}
+                            onClick={handleLogout}
+                        ></i>
+                    </div>
+                </div>
 
-    {/* Icons side by side */}
-    <div className='flex gap-3 ml-4'>
-      <i
-        className="ri-profile-line text-2xl cursor-pointer"
-        style={{ color: '#222' }}
-        onClick={() => navigate('/captain-profile')}
-      ></i>
-      <i
-        className="ri-logout-box-line text-2xl cursor-pointer"
-        style={{ color: '#222' }}
-        onClick={handleLogout}
-      ></i>
-    </div>
-  </div>
-
-  {/* Right section (optional, currently empty) */}
-  <div></div>
-</div>
+                {/* Right section (optional, currently empty) */}
+                <div></div>
+            </div>
             <div className='flex p-9 mt-8 bg-gray-100 rounded-xl justify-center gap-5 items-start'>
                 <div className='text-center'>
                     <i className="text-3xl mb-2 font-thin ri-timer-2-line"></i>
