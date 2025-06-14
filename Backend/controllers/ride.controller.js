@@ -23,7 +23,8 @@ module.exports.createRide = async (req, res) => {
 
         const pickupCoordinates = await mapService.getAdressCoordinates(pickup);
         console.log('Pickup Coordinates:', pickupCoordinates);
-        const captainsInTheRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd,pickupCoordinates.lng, 2); 
+        const captainsInTheRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd,pickupCoordinates.lng, 2, vehicleType);
+        console.log('Captains in the radius:', captainsInTheRadius); 
        ride.otp = "";
         console.log('Captains in the radius:', captainsInTheRadius);
         const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user');
@@ -75,10 +76,27 @@ module.exports.confirmRide = async (req, res) => {
             captain: req.captain
         });
 
+        // Notify the user that the ride is confirmed
         sendMessageToSocketId(ride.user.socketId, {
             event: 'ride-confirmed',
             data: ride
         });
+
+        // Notify all other captains (except the one who accepted) to close their notification
+        if (ride.captain && ride._id) {
+            const captainModel = require('../models/captain.model');
+            // Find all captains who have a socketId and are not the accepting captain
+            const otherCaptains = await captainModel.find({
+                _id: { $ne: ride.captain._id },
+                socketId: { $exists: true, $ne: null }
+            });
+            otherCaptains.forEach(captain => {
+                sendMessageToSocketId(captain.socketId, {
+                    event: 'ride-closed',
+                    data: { rideId: ride._id }
+                });
+            });
+        }
 
         console.log("req recived and ewvent sent to user");
 
@@ -116,10 +134,8 @@ module.exports.startRide = async (req, res) => {
 
 
 module.exports.endRide = async (req, res) => {
-    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        console.error('Validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
 

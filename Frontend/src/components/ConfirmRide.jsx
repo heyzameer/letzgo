@@ -1,6 +1,15 @@
 import React from 'react'
+import car from '../assets/car.jpg'
+import auto from '../assets/auto.jpg'
+import bike from '../assets/moto.jpg'
+
+
 
 const ConfirmRide = (props) => {
+    // Select image based on vehicleType
+    let vehicleImg = car;
+    if (props.vehicleType === 'auto') vehicleImg = auto;
+    if (props.vehicleType === 'moto' || props.vehicleType === 'motorcycle' || props.vehicleType === 'bike') vehicleImg = bike;
 
     return (
 
@@ -12,7 +21,7 @@ const ConfirmRide = (props) => {
             <h3 className='text-2xl font-semibold mb-5'>Confirm your Ride</h3>
 
             <div className='flex gap-2 justify-between flex-col items-center'>
-                <img className='h-30' src='https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,h_368,w_552/v1714472148/assets/95/a05538-918b-42d8-afe7-3c92325f2fd4/original/UberLux.png' alt="" />
+                <img className='h-30' src={vehicleImg} alt={props.vehicleType} />
                 <div className='w-full mt-5'>
                     <div className='flex items-center gap-5 p-3 border-b-2'>
                         <i className="ri-map-pin-user-fill"></i>

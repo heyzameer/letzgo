@@ -53,12 +53,29 @@ const CaptainHome = () => {
 
   }, [])
 
-  socket.on('new-ride', (data) => {
-    console.log("New ride received:", data);
-    setRide(data)
-    setRidePopupPanel(true)
-    setConfirmRidePopupPanel(false)
-  })
+  useEffect(() => {
+    socket.on('new-ride', (data) => {
+      console.log("New ride received:", data);
+      setRide(data)
+      setRidePopupPanel(true)
+      setConfirmRidePopupPanel(false)
+    });
+
+    // Listen for ride-closed event to close the popup if another captain accepted
+    socket.on('ride-closed', (data) => {
+      if (ride && data.rideId === ride._id) {
+        setRidePopupPanel(false);
+        setConfirmRidePopupPanel(false);
+        setRide(null);
+      }
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      socket.off('new-ride');
+      socket.off('ride-closed');
+    };
+  }, [socket, ride])
 
 
  async function confirmRide() {
@@ -130,7 +147,7 @@ const CaptainHome = () => {
         />
       </div>
 
-      <div ref={confirmRidePopupPanelRef} className='fixed  h-screen z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
+      <div ref={confirmRidePopupPanelRef} className='fixed z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
         <ConfirmRidePopUp
           ride={ride}
           setConfirmRidePopupPanel={setConfirmRidePopupPanel} setRidePopupPanel={setRidePopupPanel} />

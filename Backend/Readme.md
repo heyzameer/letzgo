@@ -842,52 +842,154 @@ Authorization: Bearer <token>
 
 ---
 
-## Endpoint: `/api/rides/get-fare`
-
-### Description
-Get fare estimates for a ride between a pickup and destination location.
-
-### Method
-`GET`
-
-### Query Parameters
-
-| Parameter     | Type   | Required | Description                  |
-|---------------|--------|----------|------------------------------|
-| `pickup`      | String | Yes      | The pickup address           |
-| `destination` | String | Yes      | The destination address      |
-
-### Headers
-| Header            | Value           | Required | Description                          |
-|--------------------|-----------------|----------|--------------------------------------|
-| `Authorization`   | Bearer `<token>`| Yes      | The token obtained during login      |
+## Endpoint: `/api/ride/create`
+- **POST**  
+- Create a new ride request.  
+- Requires: `pickup`, `destination`, `vehicleType` (`auto`, `car`, `moto`)  
+- Now only notifies captains whose vehicle type matches the requested type.
 
 ### Example Request
+```json
+{
+  "pickup": "123 Main St",
+  "destination": "456 Elm St",
+  "vehicleType": "car"
+}
 ```
-GET /api/rides/get-fare?pickup=123+Main+St&destination=456+Elm+St
-Authorization: Bearer <token>
+
+### Responses
+
+#### Success (201 Created)
+The ride is successfully created.
+
+```json
+{
+  "_id": "65f1c2e5e4b0a2d3c4e5f6g7",
+  "user": "65f1c2e5e4b0a2d3c4e5f6g1",
+  "pickup": "123 Main St",
+  "destination": "456 Elm St",
+  "fare": 120,
+  "status": "pending",
+  "otp": "1234"
+}
+```
+
+#### Validation Error (422 Unprocessable Entity)
+The input data is invalid.
+
+```json
+{
+  "errors": [
+    {
+      "msg": "Invalid pickup address",
+      "param": "pickup",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "Internal server error"
+}
+```
+
+---
+
+## Endpoint: `/api/ride/confirm`
+- **POST**  
+- Captain accepts a ride.  
+- Notifies the user and closes the ride notification for all other captains (see "Edge Cases" below).
+
+### Example Request
+```json
+{
+  "rideId": "65f1c2e5e4b0a2d3c4e5f6g7",
+  "captainId": "64f1c2e5e4b0a2d3c4e5f6g7"
+}
 ```
 
 ### Responses
 
 #### Success (200 OK)
-Returns fare estimates for each vehicle type.
+The ride is successfully confirmed by the captain.
 
 ```json
 {
-  "auto": 50,
-  "car": 80,
-  "moto": 35
+  "message": "Ride confirmed",
+  "ride": {
+    "_id": "65f1c2e5e4b0a2d3c4e5f6g7",
+    "status": "accepted",
+    "captain": "64f1c2e5e4b0a2d3c4e5f6g7"
+  }
 }
 ```
 
 #### Validation Error (400 Bad Request)
+The input data is invalid.
+
 ```json
 {
   "errors": [
     {
-      "msg": "Pickup and destination are required",
-      "param": "pickup",
+      "msg": "Ride ID and Captain ID are required",
+      "param": "rideId",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "An error occurred while processing your request."
+}
+```
+
+---
+
+## Endpoint: `/api/ride/start-ride`
+- **GET**  
+- Captain starts the ride after OTP verification.
+
+### Example Request
+```
+GET /api/ride/start-ride?rideId=65f1c2e5e4b0a2d3c4e5f6g7&otp=1234
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Responses
+
+#### Success (200 OK)
+The ride has been successfully started by the captain.
+
+```json
+{
+  "message": "Ride started",
+  "ride": {
+    "_id": "65f1c2e5e4b0a2d3c4e5f6g7",
+    "status": "in_progress",
+    "otpVerified": true
+  }
+}
+```
+
+#### Validation Error (400 Bad Request)
+The input data is invalid.
+
+```json
+{
+  "errors": [
+    {
+      "msg": "Ride ID and OTP are required",
+      "param": "rideId",
       "location": "query"
     }
   ]
@@ -895,8 +997,113 @@ Returns fare estimates for each vehicle type.
 ```
 
 #### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
 ```json
 {
-  "message": "Error message"
+  "message": "An error occurred while processing your request."
 }
 ```
+
+---
+
+## Endpoint: `/api/ride/end-ride`
+- **POST**  
+- Captain ends the ride.  
+- Updates captain's total earnings, total rides, and total distance.
+
+### Example Request
+```json
+{
+  "rideId": "65f1c2e5e4b0a2d3c4e5f6g7",
+  "captainId": "64f1c2e5e4b0a2d3c4e5f6g7",
+  "fare": 150
+}
+```
+
+### Responses
+
+#### Success (200 OK)
+The ride has been successfully ended.
+
+```json
+{
+  "message": "Ride ended",
+  "ride": {
+    "_id": "65f1c2e5e4b0a2d3c4e5f6g7",
+    "status": "completed",
+    "fare": 150
+  },
+  "captain": {
+    "_id": "64f1c2e5e4b0a2d3c4e5f6g7",
+    "totalEarnings": 300,
+    "totalRides": 2,
+    "totalDistance": 10
+  }
+}
+```
+
+#### Validation Error (400 Bad Request)
+The input data is invalid.
+
+```json
+{
+  "errors": [
+    {
+      "msg": "Ride ID, Captain ID, and fare are required",
+      "param": "rideId",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Server Error (500 Internal Server Error)
+An unexpected error occurred on the server.
+
+```json
+{
+  "message": "An error occurred while processing your request."
+}
+```
+
+---
+
+## New/Updated Endpoints
+
+### `/api/ride/create`
+- **POST**  
+- Create a new ride request.  
+- Requires: `pickup`, `destination`, `vehicleType` (`auto`, `car`, `moto`)  
+- Now only notifies captains whose vehicle type matches the requested type.
+
+### `/api/ride/confirm`
+- **POST**  
+- Captain accepts a ride.  
+- Notifies the user and closes the ride notification for all other captains (see "Edge Cases" below).
+
+### `/api/ride/start-ride`
+- **GET**  
+- Captain starts the ride after OTP verification.
+
+### `/api/ride/end-ride`
+- **POST**  
+- Captain ends the ride.  
+- Updates captain's total earnings, total rides, and total distance.
+
+### `/api/ride/get-fare`
+- **GET**  
+- Returns fare estimates for all vehicle types for a given pickup and destination.
+
+---
+
+## Edge Cases & Features Implemented
+
+- **Specific Vehicle Image on Each Page:**  
+  The frontend now displays the correct vehicle image (car, auto, or bike) based on the selected or assigned vehicle type on all relevant pages (ride confirmation, waiting, looking for driver, etc.).
+
+- **Searching for Captain with Particular Vehicle Type:**  
+  When a ride is created, only captains whose vehicle type matches the requested type are notified and considered for the ride.
+
+- **Closing Notification When Another Captain Accepts the Ride:**  
+  When a captain accepts a ride, all other captains who received the ride notification will have their notification closed in real time, preventing multiple captains from accepting the same ride.
