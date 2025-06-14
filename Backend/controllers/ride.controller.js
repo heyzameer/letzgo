@@ -116,8 +116,10 @@ module.exports.startRide = async (req, res) => {
 
 
 module.exports.endRide = async (req, res) => {
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.error('Validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
 
@@ -126,12 +128,25 @@ module.exports.endRide = async (req, res) => {
     try {
         const ride = await rideService.endRide({ rideId, captain: req.captain });
 
+        // Update captain's earnings, ride count, and total distance
+        if (ride.captain && ride.fare) {
+            const captainModel = require('../models/captain.model');
+            await captainModel.findByIdAndUpdate(
+                ride.captain._id,
+                {
+                    $inc: {
+                        totalEarnings: ride.fare,
+                        totalRides: 1,
+                        totalDistance: ride.distance || 0
+                    }
+                }
+            );
+        }
+
         sendMessageToSocketId(ride.user.socketId, {
             event: 'ride-ended',
             data: ride
         })
-
-
 
         return res.status(200).json(ride);
     } catch (err) {

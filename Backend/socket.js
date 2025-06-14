@@ -45,6 +45,24 @@ function initializeSocket(server) {
             });
         });
 
+        socket.on('payment-success', async (data) => {
+            const { rideId } = data;
+            const rideModel = require('./models/ride.model');
+            const ride = await rideModel.findById(rideId).populate('user').populate('captain');
+            if (ride) {
+                // End the ride
+                ride.status = 'completed';
+                await ride.save();
+                // Notify both user and captain
+                if (ride.user.socketId) {
+                    io.to(ride.user.socketId).emit('ride-ended', ride);
+                }
+                if (ride.captain && ride.captain.socketId) {
+                    io.to(ride.captain.socketId).emit('ride-ended', ride);
+                }
+            }
+        });
+
         socket.on('disconnect', () => {
             console.log(`Client disconnected: ${socket.id}`);
         });

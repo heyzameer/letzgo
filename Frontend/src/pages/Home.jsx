@@ -234,7 +234,7 @@ const Home = () => {
   };
 
   return (
-    <div className='relative h-screen overflow-hidden'>
+    <div className='relative  h-screen overflow-hidden'>
     
 
       <div className='h-4/5 z-0'>
@@ -315,11 +315,11 @@ const Home = () => {
         </div>
       </div>
 
-      <div ref={vehiclePanelRef} className='fixed w-full z-10 bg-white bottom-0  px-3 py-8 pt-12'>
+      <div ref={vehiclePanelRef} className='fixed h-screen w-[910px] z-10 bg-white bottom-0  px-3 py-8 pt-12'>
         <VehiclePanel selectVehicle={setVehicleType} fare={fare} setConfirmRidePanel={setconfirmRidePanel} setVehiclePanel={setVehiclePanel} />
       </div>
 
-      <div ref={confirmRidePanelRef} className='fixed w-full z-10 bg-white bottom-0  px-3 py-6 pt-12'>
+      <div ref={confirmRidePanelRef} className='fixed h-screen w-[910px] z-10 bg-white bottom-0  px-3 py-6 pt-12'>
         <ConfirmRide
           pickup={pickup}
           destination={destination}
@@ -330,14 +330,14 @@ const Home = () => {
           setVehicleFound={setVehicleFound} />
       </div>
 
-      <div ref={vehicleFoundRef} className='fixed w-full z-10 bg-white bottom-0  px-3 py-6 pt-12'>
+      <div ref={vehicleFoundRef} className='fixed w-[910px] z-10 bg-white bottom-0  px-3 py-6 pt-12'>
         <LookingForDriver pickup={pickup}
           destination={destination}
           vehicleType={vehicleType}
           fare={fare} setVehicleFound={setVehicleFound} />
       </div>
 
-      <div ref={WaitingForDriverRef} className='fixed w-full z-10 bg-white bottom-0  px-3 py-6 pt-12'>
+      <div ref={WaitingForDriverRef} className='fixed w-[910px] z-10 bg-white bottom-0  px-3 py-6 pt-12'>
         <WaitingForDriver setWaitingForDriver={setWaitingForDriver}
           ride={ride} />
       </div>

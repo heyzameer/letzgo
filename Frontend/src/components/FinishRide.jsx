@@ -19,6 +19,7 @@ const FinishRide = (props) => {
                 Authorization: `Bearer ${localStorage.getItem('token')}`
             }
         })
+        console.log(response)
 
         if (response.status === 200) {
             navigate('/captain-home')
