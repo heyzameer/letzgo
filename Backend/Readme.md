@@ -841,7 +841,6 @@ Authorization: Bearer <token>
 ```
 
 ---
-
 ## Endpoint: `/api/ride/create`
 - **POST**  
 - Create a new ride request.  
