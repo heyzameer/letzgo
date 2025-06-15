@@ -1,7 +1,7 @@
 const rideService = require('../services/ride.services');
 const mapService = require('../services/maps.service');
 const { validationResult } = require('express-validator');
-const {sendMessageToSocketId} = require('../socket');
+const { sendMessageToSocketId } = require('../socket');
 const rideModel = require('../models/ride.model');
 
 module.exports.createRide = async (req, res) => {
@@ -9,7 +9,7 @@ module.exports.createRide = async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
     }
-    const {pickup, destination, vehicleType } = req.body;
+    const { pickup, destination, vehicleType } = req.body;
 
     try {
         const ride = await rideService.createRide({
@@ -18,14 +18,16 @@ module.exports.createRide = async (req, res) => {
             destination,
             vehicleType
         });
-        res.status(201).json(ride);
+        // Send socketId in response if available
+        const userSocketId = req.user.socketId || null;
+        res.status(201).json({ ...ride._doc, socketId: userSocketId });
 
-
+        console.log('Ride Created org :', ride);
         const pickupCoordinates = await mapService.getAdressCoordinates(pickup);
-        console.log('Pickup Coordinates:', pickupCoordinates);
-        const captainsInTheRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd,pickupCoordinates.lng, 2, vehicleType);
-        console.log('Captains in the radius:', captainsInTheRadius); 
-       ride.otp = "";
+        console.log('Pickup Coordinates org:', pickupCoordinates);
+        const captainsInTheRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd, pickupCoordinates.lng, 2, vehicleType);
+        console.log('Captains in the radius:', captainsInTheRadius);
+        ride.otp = "";
         console.log('Captains in the radius:', captainsInTheRadius);
         const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user');
         captainsInTheRadius.map(captain => {
@@ -44,7 +46,6 @@ module.exports.createRide = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 }
-
 
 module.exports.getFare = async (req, res) => {
     const errors = validationResult(req);
@@ -167,5 +168,35 @@ module.exports.endRide = async (req, res) => {
         return res.status(200).json(ride);
     } catch (err) {
         return res.status(500).json({ message: err.message });
-    } 
+    }
+}
+
+module.exports.cancelRideByCaptain = async (req, res) => {
+    const { rideId } = req.body;
+    try {
+        // Find the ride and check if it exists and is accepted, and populate user to get socketId
+        const ride = await rideModel.findOne({ _id: rideId, status: 'accepted' }).populate('user');
+        if (!ride) {
+            return res.status(404).json({ message: 'Ride not found or not in accepted state' });
+        }
+
+        // Defensive: ensure user is populated and has socketId
+        const userSocketId = ride.user && ride.user.socketId ? ride.user.socketId : null;
+
+        console.log('Ride found for cancellation:', ride._id, 'User socketId:', userSocketId);
+        // Notify user that captain cancelled and trigger frontend to go back to confirm ride panel
+        if (userSocketId) {
+            sendMessageToSocketId(userSocketId, {
+                event: 'ride-cancelled-by-captain',
+                data: { rideId: ride._id }
+            });
+        } else {
+            console.warn('User socketId not found for ride:', ride._id);
+        }
+
+        return res.status(200).json({ message: 'Ride cancelled by captain and user notified.' });
+    } catch (err) {
+        console.error('Error in cancelRideByCaptain:', err);
+        return res.status(500).json({ message: err.message });
+    }
 }

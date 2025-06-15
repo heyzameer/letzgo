@@ -52,6 +52,7 @@ module.exports.authCaptain = async (req, res, next) => {
       
         
         req.captain = captain;
+        console.log("captain authenticated", captain);
 
         // req.token = token;
         return next();

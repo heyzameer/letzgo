@@ -96,4 +96,10 @@ router.post('/verify-payment',
     }
 );
 
+router.post('/cancel-by-captain',
+    authMiddleware.authCaptain,
+    body('rideId').isMongoId().withMessage('Invalid ride id'),
+    rideController.cancelRideByCaptain
+);
+
 module.exports = router;

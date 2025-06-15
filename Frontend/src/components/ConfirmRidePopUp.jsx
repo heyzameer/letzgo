@@ -84,11 +84,32 @@ const ConfirmRidePopUp = (props) => {
                         <input value={otp} onChange={(e) => setOtp(e.target.value)} type="text" className='bg-[#eee] px-6 py-4 font-mono text-lg rounded-lg w-full mt-3' placeholder='Enter OTP' />
 
                         <button to='/captain-riding'className='w-full mt-5 text-lg flex justify-center bg-green-600 text-white font-semibold p-3 rounded-lg'>Confirm</button>
-                        <button onClick={() => {
+                        {/* <button onClick={() => {
                             props.setConfirmRidePopupPanel(false)
                             props.setRidePopupPanel(false)
 
-                        }} className='w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg'>Cancel</button>
+                        }} className='w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg'>Cancel</button> */}
+
+                          <button
+                            type="button"
+                            onClick={async () => {
+                                // Call cancel-by-captain API
+                                await axios.post(
+                                    `${import.meta.env.VITE_BASE_URL}/api/ride/cancel-by-captain`,
+                                    { rideId: props.ride._id },
+                                    {
+                                        headers: {
+                                            Authorization: `Bearer ${localStorage.getItem('token')}`
+                                        }
+                                    }
+                                );
+                                props.setConfirmRidePopupPanel(false)
+                                props.setRidePopupPanel(false)
+                            }}
+                            className='w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg'
+                        >
+                            Cancel
+                        </button>
 
                     </form>
                 </div>

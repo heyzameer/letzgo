@@ -50,6 +50,12 @@ const ConfirmRide = (props) => {
                     props.setConfirmRidePanel(false)
                     props.createRide()
                 }} className='w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg'>Confirm</button>
+                {/* Show cancel message if present */}
+                {props.cancelMessage && (
+                  <div className="mt-4 text-center text-red-600 font-medium">
+                    {props.cancelMessage}
+                  </div>
+                )}
             </div>
         </div>
     )

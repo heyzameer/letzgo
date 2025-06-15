@@ -23,6 +23,7 @@ const Home = () => {
   const [confirmRidePanel, setconfirmRidePanel] = useState(false);
   const [vehicleFound, setVehicleFound] = useState(false);
   const [WaitingForDriverState, setWaitingForDriver] = useState(false);
+  const [cancelMessage, setCancelMessage] = useState(null);
 
   const panelRef = useRef(null);
   const panelCloseRef = useRef(null)
@@ -59,19 +60,36 @@ const Home = () => {
   //   }
   // }, [user]);
 
-  socket.on('ride-confirmed', (ride) => {
-    console.log("ride-confirmed receivedd:", ride);
-    setWaitingForDriver(true);
-    setVehicleFound(false);
-    setRide(ride);
-  });
+  useEffect(() => {
+    socket.on('ride-confirmed', (ride) => {
+      console.log("ride-confirmed receivedd:", ride);
+      setWaitingForDriver(true);
+      setVehicleFound(false);
+      setRide(ride);
+    });
 
-  socket.on('ride-started', ride => {
-    console.log("ride")
-    setWaitingForDriver(false)
-    navigate('/riding', { state: { ride } }) // Updated navigate to include ride data
-  })
+    socket.on('ride-started', ride => {
+      console.log("ride")
+      setWaitingForDriver(false)
+      navigate('/riding', { state: { ride } }) // Updated navigate to include ride data
+    });
 
+    // Handle captain cancellation: return user to confirm ride panel
+    socket.on('ride-cancelled-by-captain', (data) => {
+      console.log("ride-cancelled-by-captain:", data);
+      setWaitingForDriver(false);
+      setVehicleFound(false);
+      setCancelMessage("The captain cancelled your ride. Please confirm again or wait for another captain.");
+      setconfirmRidePanel(true);
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      socket.off('ride-confirmed');
+      socket.off('ride-started');
+      socket.off('ride-cancelled-by-captain');
+    };
+  }, [socket, navigate]);
 
   const handlePickupChange = async (e) => {
     setPickup(e.target.value)
@@ -327,7 +345,9 @@ const Home = () => {
           fare={fare}
           createRide={createRide}
           setConfirmRidePanel={setconfirmRidePanel}
-          setVehicleFound={setVehicleFound} />
+          setVehicleFound={setVehicleFound}
+          cancelMessage={cancelMessage}
+        />
       </div>
 
       <div ref={vehicleFoundRef} className='fixed h-screen
@@ -341,6 +361,7 @@ const Home = () => {
       <div ref={WaitingForDriverRef} className='fixed z-10 bg-white bottom-0  px-3 py-6 pt-12'>
         <WaitingForDriver setWaitingForDriver={setWaitingForDriver}
           ride={ride}
+          setVehicleFound={setVehicleFound}
           vehicleType={vehicleType} />
       </div>
     </div>
