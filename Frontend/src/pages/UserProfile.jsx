@@ -109,14 +109,14 @@ const UserProfile = () => {
           onChange={handleChange}
           className="w-full mb-4 px-3 py-2 border rounded"
         />
-        <label className="block mb-2 font-medium">Password</label>
+        {/* <label className="block mb-2 font-medium">Password</label>
         <input
           name="password"
           type="text"
           value={form.password}
           onChange={handleChange}
           className="w-full mb-4 px-3 py-2 border rounded"
-        />
+        /> */}
         <button
           type="submit"
           className="w-full bg-black text-white py-2 rounded font-semibold"

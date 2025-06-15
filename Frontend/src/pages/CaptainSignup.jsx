@@ -30,7 +30,7 @@ const validateForm = () => {
   if (vehicleColor.trim().length < 3) return "Vehicle color must be at least 3 characters long";
   if (vehiclePlate.trim().length < 3) return "Vehicle plate must be at least 3 characters long";
   if (!Number(vehicleCapacity) || Number(vehicleCapacity) < 1) return "Vehicle capacity must be a number greater than 0";
-  if (!['car', 'auto', 'motorcycle', 'bike'].includes(vehicleType)) return "Select a valid vehicle type";
+  if (!['car', 'auto', 'moto'].includes(vehicleType)) return "Select a valid vehicle type";
   return null;
 };
 

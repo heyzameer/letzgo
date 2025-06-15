@@ -108,21 +108,27 @@ const CaptainProfile = () => {
           onChange={handleChange}
           className="w-full mb-4 px-3 py-2 border rounded"
         />
-        <label className="block mb-2 font-medium">Password</label>
+        {/* <label className="block mb-2 font-medium">Password</label>
         <input
           name="password"
           type="text"
           value={form.password}
           onChange={handleChange}
           className="w-full mb-4 px-3 py-2 border rounded"
-        />
+        /> */}
+        {/* Vehicle Type as dropdown */}
         <label className="block mb-2 font-medium">Vehicle Type</label>
-        <input
+        <select
           name="vehicleType"
           value={form.vehicleType}
           onChange={handleChange}
           className="w-full mb-4 px-3 py-2 border rounded"
-        />
+        >
+          <option value="">Select Vehicle Type</option>
+          <option value="car">Car</option>
+          <option value="moto">Moto</option>
+          <option value="auto">Auto</option>
+        </select>
         <label className="block mb-2 font-medium">Plate</label>
         <input
           name="plate"
