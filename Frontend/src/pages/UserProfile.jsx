@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from 'react'
 import { UserDataContext } from '../context/UserContext'
 import axios from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
+import logo from '../assets/logoblack.png'
+
 
 const UserProfile = () => {
   const { user, setUser } = useContext(UserDataContext)
@@ -76,7 +78,8 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow relative">
+    
+    <div className="p-5 bg-white relative top-10 h-screen">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">User Profile</h2>
         <Link to="/home"><i
@@ -124,6 +127,11 @@ const UserProfile = () => {
           <div className="mt-4 text-center text-sm text-green-600">{message}</div>
         )}
       </form>
+        <img
+          className="w-50 h-50 object-contain center mx-auto mt-19"
+          src={logo}
+          alt="LetzGo Logo"
+        />
     </div>
   )
 }

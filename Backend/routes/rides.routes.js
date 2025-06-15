@@ -102,4 +102,10 @@ router.post('/cancel-by-captain',
     rideController.cancelRideByCaptain
 );
 
+router.post('/cancel-by-user',
+    authMiddleware.authUser,
+    body('rideId').isMongoId().withMessage('Invalid ride id'),
+    rideController.cancelRideByUser
+);
+
 module.exports = router;

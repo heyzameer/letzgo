@@ -49,6 +49,7 @@ const Home = () => {
   useEffect(() => {
     console.log("User complete data:", user);
     socket.emit('join', { userType: "user", userId: user?.user?._id });
+    setCancelMessage(null);
   }, [user]);
 
 
@@ -66,6 +67,7 @@ const Home = () => {
       setWaitingForDriver(true);
       setVehicleFound(false);
       setRide(ride);
+      setCancelMessage(null); 
     });
 
     socket.on('ride-started', ride => {
@@ -321,7 +323,7 @@ const Home = () => {
             Find Trip
           </button>}
         </div>
-        <div ref={panelRef} className='bg-white h-0 overflow-auto transition-all duration-500 '>
+        <div ref={panelRef} className='bg-white h-0 overflow-auto rounded-3xl transition-all duration-500 '>
           <LocationSearchPanel
             suggestions={activeField === 'pickup' ? pickupSuggestions : destinationSuggestions}
             setPanelOpen={setPanelOpen}
@@ -333,11 +335,11 @@ const Home = () => {
         </div>
       </div>
 
-      <div ref={vehiclePanelRef} className='fixed h-screen  z-10 bg-white bottom-0  px-3 py-8 pt-12'>
+      <div ref={vehiclePanelRef} className='fixed h-screen  z-10 bg-white bottom-0 rounded-3xl  px-3 py-8 pt-12'>
         <VehiclePanel selectVehicle={setVehicleType} fare={fare} setConfirmRidePanel={setconfirmRidePanel} setVehiclePanel={setVehiclePanel} />
       </div>
 
-      <div ref={confirmRidePanelRef} className='fixed h-screen z-10 bg-white bottom-0  px-3 py-6 pt-12'>
+      <div ref={confirmRidePanelRef} className='fixed h-screen z-10 bg-white bottom-0 rounded-3xl px-3 py-6 pt-12'>
         <ConfirmRide
           pickup={pickup}
           destination={destination}
@@ -351,14 +353,14 @@ const Home = () => {
       </div>
 
       <div ref={vehicleFoundRef} className='fixed h-screen
-       z-10 bg-white bottom-0  px-3 py-6 pt-12'>
+       z-10 bg-white bottom-0  px-3 py-6 pt-12 rounded-3xl'>
         <LookingForDriver pickup={pickup}
           destination={destination}
           vehicleType={vehicleType}
           fare={fare} setVehicleFound={setVehicleFound} />
       </div>
 
-      <div ref={WaitingForDriverRef} className='fixed z-10 bg-white bottom-0  px-3 py-6 pt-12'>
+      <div ref={WaitingForDriverRef} className='fixed z-10 bg-white bottom-0  px-3 py-6 pt-12 rounded-3xl'>
         <WaitingForDriver setWaitingForDriver={setWaitingForDriver}
           ride={ride}
           setVehicleFound={setVehicleFound}

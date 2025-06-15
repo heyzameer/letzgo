@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from 'react'
 import { CaptainDataContext } from '../context/CaptainContext'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import logo from '../assets/logoblack.png'
+
 
 const CaptainProfile = () => {
   const { captain, setCaptain } = useContext(CaptainDataContext)
@@ -66,6 +68,7 @@ const CaptainProfile = () => {
       setCaptain(res.data.captain)
       setMessage('Profile updated successfully!')
     } catch (err) {
+      
       setMessage(
         err?.response?.data?.message ||
         'Failed to update profile.'
@@ -74,7 +77,7 @@ const CaptainProfile = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow relative">
+    <div className="p-5 bg-white relative top- h-screen">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Captain Profile</h2>
         <i
@@ -152,6 +155,11 @@ const CaptainProfile = () => {
           <div className="mt-4 text-center text-sm text-green-600">{message}</div>
         )}
       </form>
+      <img
+        className="w-50 h-50 object-contain center mx-auto"
+        src={logo}
+        alt="LetzGo Logo"
+      />
     </div>
   )
 }

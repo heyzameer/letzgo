@@ -93,10 +93,12 @@ module.exports.updateCaptainProfile = async (req, res, next) => {
         if (vehicle.vehicleType) updates['vehicle.vehicleType'] = vehicle.vehicleType;
     }
 
-    const isCaptainAlreadyExist = await captainModel.findOne({ email });
-
-    if (isCaptainAlreadyExist) {
-        return res.status(400).json({ message: 'Captain already exist' });
+    // Only check for existing captain if the email is different from the current captain's email
+    if (email && email !== req.captain.email) {
+        const isCaptainAlreadyExist = await captainModel.findOne({ email });
+        if (isCaptainAlreadyExist) {
+            return res.status(400).json({ message: 'Captain already exist' });
+        }
     }
 
     try {

@@ -21,6 +21,7 @@ const CaptainHome = () => {
   const ridePopupPanelRef = useRef(null)
   const confirmRidePopupPanelRef = useRef(null)
   const [ride, setRide] = useState(null)
+  const [cancelMessage, setCancelMessage] = useState(null);
 
   const { socket } = useContext(SocketContext)
   const { captain } = useContext(CaptainDataContext)
@@ -61,7 +62,6 @@ const CaptainHome = () => {
       setConfirmRidePopupPanel(false)
     });
 
-    // Listen for ride-closed event to close the popup if another captain accepted
     socket.on('ride-closed', (data) => {
       if (ride && data.rideId === ride._id) {
         setRidePopupPanel(false);
@@ -70,35 +70,46 @@ const CaptainHome = () => {
       }
     });
 
+    // Listen for ride-cancelled-by-user event to close the popup if user cancels
+    socket.on('ride-cancelled-by-user', (data) => {
+      if (ride && data.rideId === ride._id) {
+        setRidePopupPanel(false);
+        setConfirmRidePopupPanel(false);
+        setRide(null);
+        setCancelMessage("The ride has been cancelled by the user.");
+      }
+    });
+
     // Cleanup listeners on unmount
     return () => {
       socket.off('new-ride');
       socket.off('ride-closed');
+      socket.off('ride-cancelled-by-user');
     };
   }, [socket, ride])
 
 
- async function confirmRide() {
-  try {
-    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/ride/confirm`, {
-      rideId: ride._id,
-      captainId: captain._id,
-    }, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    });
+  async function confirmRide() {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/ride/confirm`, {
+        rideId: ride._id,
+        captainId: captain._id,
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
 
-    console.log("req sent from captain fro ride")
+      console.log("req sent from captain fro ride")
 
-    setRidePopupPanel(false);
-    setConfirmRidePopupPanel(true);
+      setRidePopupPanel(false);
+      setConfirmRidePopupPanel(true);
 
-  } catch (error) {
-    console.error('Error confirming ride:', error?.response?.data?.message || error.message);
-    alert('Failed to confirm ride. Please try again.');
+    } catch (error) {
+      console.error('Error confirming ride:', error?.response?.data?.message || error.message);
+      alert('Failed to confirm ride. Please try again.');
+    }
   }
-}
 
 
   useGSAP(function () {
@@ -133,10 +144,15 @@ const CaptainHome = () => {
       </div>
 
       <div className='h-2/5 p-6 '>
-        <CaptainDetails 
-        captain={captain}
-        ridePopupPanel={ridePopupPanel}
-        confirmRidePopupPanel={confirmRidePopupPanel}/>
+        <CaptainDetails
+          captain={captain}
+          ridePopupPanel={ridePopupPanel}
+          confirmRidePopupPanel={confirmRidePopupPanel} />
+          {cancelMessage && (
+        <div className="mt-1 text-center text-red-600 font-medium" onClick={() => setCancelMessage(null)}>
+          {cancelMessage}
+        </div>
+      )}
       </div>
       <div ref={ridePopupPanelRef} className='fixed z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
         <RidePopUp
@@ -152,6 +168,7 @@ const CaptainHome = () => {
           ride={ride}
           setConfirmRidePopupPanel={setConfirmRidePopupPanel} setRidePopupPanel={setRidePopupPanel} />
       </div>
+      
 
 
     </div>

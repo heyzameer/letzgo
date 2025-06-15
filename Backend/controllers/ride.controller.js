@@ -200,3 +200,34 @@ module.exports.cancelRideByCaptain = async (req, res) => {
         return res.status(500).json({ message: err.message });
     }
 }
+
+module.exports.cancelRideByUser = async (req, res) => {
+    const { rideId } = req.body;
+    console.log('Received request to cancel ride by user:', rideId);
+    try {
+        // Find the ride and check if it exists and is pending or accepted, and populate captain to get socketId
+        const ride = await rideModel.findOne({ _id: rideId, status: { $in: ['pending', 'accepted'] } }).populate('captain');
+        if (!ride) {
+            return res.status(404).json({ message: 'Ride not found or not in cancellable state' });
+        }
+
+        // Defensive: ensure captain is populated and has socketId
+        const captainSocketId = ride.captain && ride.captain.socketId ? ride.captain.socketId : null;
+
+        // Notify captain that user cancelled and trigger frontend to close notification
+        if (captainSocketId) {
+            sendMessageToSocketId(captainSocketId, {
+                event: 'ride-cancelled-by-user',
+                data: { rideId: ride._id }
+            });
+        }
+
+        // Optionally, update ride status to cancelled
+        await rideModel.findByIdAndUpdate(rideId, { status: 'cancelled' });
+
+        return res.status(200).json({ message: 'Ride cancelled by user and captain notified.' });
+    } catch (err) {
+        console.error('Error in cancelRideByUser:', err);
+        return res.status(500).json({ message: err.message });
+    }
+}
