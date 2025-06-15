@@ -18,7 +18,7 @@ function initializeSocket(server) {
 
         socket.on('join', async (data) => {
             const { userId, userType } = data;
-            console.log(data); // <-- This will log the received data
+            // console.log(data); // <-- This will log the received data
 
             console.log(`User joined: ${userId}, Type: ${userType}`);
 
@@ -71,7 +71,7 @@ function initializeSocket(server) {
 
 const sendMessageToSocketId = (socketId, messageObject) => {
 
-console.log(messageObject);
+// console.log(messageObject);
 
     if (io) {
         io.to(socketId).emit(messageObject.event, messageObject.data);
