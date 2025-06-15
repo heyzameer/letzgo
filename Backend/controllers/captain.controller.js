@@ -5,7 +5,6 @@ const captainService = require('../services/captain.service');
 const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
 
-// In-memory OTP store (for demo; use DB or cache in production)
 const otpStore = {};
 
 module.exports.registerCaptain = async (req, res, next) => {
@@ -73,7 +72,6 @@ module.exports.loginCaptain = async (req, res, next) => {
 }
 
 module.exports.getCaptainProfile = async (req, res, next) => {
-    // Always include password as empty string for frontend compatibility
     const captainObj = req.captain.toObject ? req.captain.toObject() : req.captain;
     res.status(200).json({ captain: { ...captainObj, password: '' } });
 }
@@ -143,8 +141,8 @@ module.exports.forgotPassword = async (req, res) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: 'sunbe3235@gmail.com', // set in .env
-            pass: 'ruyv zodh etse vwmw'  
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
         }
     });
 

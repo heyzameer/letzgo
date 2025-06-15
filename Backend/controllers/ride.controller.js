@@ -22,13 +22,13 @@ module.exports.createRide = async (req, res) => {
         const userSocketId = req.user.socketId || null;
         res.status(201).json({ ...ride._doc, socketId: userSocketId });
 
-        console.log('Ride Created org :', ride);
+        // console.log('Ride Created org :', ride);
         const pickupCoordinates = await mapService.getAdressCoordinates(pickup);
-        console.log('Pickup Coordinates org:', pickupCoordinates);
+        // console.log('Pickup Coordinates org:', pickupCoordinates);
         const captainsInTheRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd, pickupCoordinates.lng, 2, vehicleType);
-        console.log('Captains in the radius:', captainsInTheRadius);
+        // console.log('Captains in the radius:', captainsInTheRadius);
         ride.otp = "";
-        console.log('Captains in the radius:', captainsInTheRadius);
+        // console.log('Captains in the radius:', captainsInTheRadius);
         const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user');
         captainsInTheRadius.map(captain => {
 
@@ -42,7 +42,7 @@ module.exports.createRide = async (req, res) => {
 
     }
     catch (error) {
-        console.error('Error creating ride:', error);
+        // console.error('Error creating ride:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }
@@ -99,7 +99,7 @@ module.exports.confirmRide = async (req, res) => {
             });
         }
 
-        console.log("req recived and ewvent sent to user");
+        // console.log("req recived and ewvent sent to user");
 
         return res.status(200).json(ride);
     } catch (err) {
@@ -120,7 +120,7 @@ module.exports.startRide = async (req, res) => {
     try {
         const ride = await rideService.startRide({ rideId, otp, captain: req.captain });
 
-        console.log(ride);
+        // console.log(ride);
 
         sendMessageToSocketId(ride.user.socketId, {
             event: 'ride-started',
@@ -183,7 +183,7 @@ module.exports.cancelRideByCaptain = async (req, res) => {
         // Defensive: ensure user is populated and has socketId
         const userSocketId = ride.user && ride.user.socketId ? ride.user.socketId : null;
 
-        console.log('Ride found for cancellation:', ride._id, 'User socketId:', userSocketId);
+        // console.log('Ride found for cancellation:', ride._id, 'User socketId:', userSocketId);
         // Notify user that captain cancelled and trigger frontend to go back to confirm ride panel
         if (userSocketId) {
             sendMessageToSocketId(userSocketId, {
@@ -196,14 +196,14 @@ module.exports.cancelRideByCaptain = async (req, res) => {
 
         return res.status(200).json({ message: 'Ride cancelled by captain and user notified.' });
     } catch (err) {
-        console.error('Error in cancelRideByCaptain:', err);
+        // console.error('Error in cancelRideByCaptain:', err);
         return res.status(500).json({ message: err.message });
     }
 }
 
 module.exports.cancelRideByUser = async (req, res) => {
     const { rideId } = req.body;
-    console.log('Received request to cancel ride by user:', rideId);
+    // console.log('Received request to cancel ride by user:', rideId);
     try {
         // Find the ride and check if it exists and is pending or accepted, and populate captain to get socketId
         const ride = await rideModel.findOne({ _id: rideId, status: { $in: ['pending', 'accepted'] } }).populate('captain');
@@ -227,7 +227,7 @@ module.exports.cancelRideByUser = async (req, res) => {
 
         return res.status(200).json({ message: 'Ride cancelled by user and captain notified.' });
     } catch (err) {
-        console.error('Error in cancelRideByUser:', err);
+        // console.error('Error in cancelRideByUser:', err);
         return res.status(500).json({ message: err.message });
     }
 }

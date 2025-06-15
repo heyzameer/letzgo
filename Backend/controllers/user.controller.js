@@ -60,7 +60,7 @@ module.exports.loginUser = async (req, res, next) => {
 
 module.exports.getUserProfile = async (req, res, next) => {
     // If includePassword query param is true, select password (for demonstration only)
-    console.log('includePassword query param:', req.query.includePassword);
+    // console.log('includePassword query param:', req.query.includePassword);
     if (req.query.includePassword === 'true') {
         const user = await require('../models/user.model')
             .findById(req.user._id)
@@ -130,14 +130,14 @@ module.exports.forgotPassword = async (req, res) => {
         return res.status(404).json({ message: 'User not found' });
     }
 
-    console.log('Sending OTP to:', email);
+    // console.log('Sending OTP to:', email);
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Save OTP in memory (for demo; use DB or cache for production)
     otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 }; // 10 min expiry
 
-    console.log('Generated OTP:', otp);
+    // console.log('Generated OTP:', otp);
     // Send OTP via email using nodemailer
     const transporter = nodemailer.createTransport({
         service: 'gmail',

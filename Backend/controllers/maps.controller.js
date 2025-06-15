@@ -13,7 +13,7 @@ module.exports.getCoordinate = async (req, res) => {
         const coordinates = await mapsService.getAdressCoordinates(address);
         res.status(200).json(coordinates);
     } catch (error) {
-        console.error('Error fetching coordinates:', error);
+        // console.error('Error fetching coordinates:', error);
         res.status(404).json({ message: 'Coordinates not found' });
     }
     };
@@ -28,7 +28,7 @@ module.exports.getDistanceAndTime = async (req, res) => {
         const distanceAndTime = await mapsService.getDistanceAndTime(origin, destination);
         res.status(200).json(distanceAndTime);
     } catch (error) {
-        console.error('Error fetching distance and time:', error);
+        // console.error('Error fetching distance and time:', error);
         res.status(404).json({ message: 'Distance and time not found' });
         }
     }
@@ -45,7 +45,7 @@ module.exports.getAutoCompleteSuggestions = async (req, res) => {
         const suggestions = await mapsService.getAutoCompleteSuggestions(input);
         res.status(200).json(suggestions);
     } catch (error) {
-        console.error('Error fetching suggestions:', error);
+        // console.error('Error fetching suggestions:', error);
         res.status(404).json({ message: 'Suggestions not found' });
     }
 }
