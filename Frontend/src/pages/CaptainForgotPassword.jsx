@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import { useNavigate, Link } from 'react-router-dom'
+import logo from '../assets/logoblack.png'
+
 
 const CaptainForgotPassword = () => {
   const [step, setStep] = useState(1)
@@ -43,7 +45,7 @@ const CaptainForgotPassword = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
+    <div className="max-w-md mx-auto mt-1 p-6 bg-white rounded shadow h-screen">
       {/* Back arrow to captain-login */}
       <Link to="/captain-login">
         <i className="ri-arrow-left-line text-2xl mb-4 cursor-pointer" style={{ color: '#222' }}></i>
@@ -102,6 +104,11 @@ const CaptainForgotPassword = () => {
       )}
       {message && <div className="mt-4 text-green-600 text-center">{message}</div>}
       {error && <div className="mt-4 text-red-600 text-center">{error}</div>}
+    <img
+        className="w-50 h-50 object-contain center mx-auto"
+        src={logo}
+        alt="LetzGo Logo"
+      />
     </div>
   )
 }

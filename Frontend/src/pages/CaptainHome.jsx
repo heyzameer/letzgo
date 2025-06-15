@@ -27,14 +27,14 @@ const CaptainHome = () => {
   const { captain } = useContext(CaptainDataContext)
 
   useEffect(() => {
-    console.log("Captain complete data:", captain);
+    // console.log("Captain complete data:", captain);
     socket.emit('join', { userType: "captain", userId: captain?._id });
 
     const updateLocation = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(position => {
 
-          console.log("Updating location for captain:", captain._id, position.coords.latitude, position.coords.longitude);
+          // console.log("Updating location for captain:", captain._id, position.coords.latitude, position.coords.longitude);
           socket.emit('update-location-captain', {
             userId: captain._id,
             location: {
@@ -56,7 +56,7 @@ const CaptainHome = () => {
 
   useEffect(() => {
     socket.on('new-ride', (data) => {
-      console.log("New ride received:", data);
+      // console.log("New ride received:", data);
       setRide(data)
       setRidePopupPanel(true)
       setConfirmRidePopupPanel(false)
@@ -100,13 +100,13 @@ const CaptainHome = () => {
         }
       });
 
-      console.log("req sent from captain fro ride")
+      // console.log("req sent from captain fro ride")
 
       setRidePopupPanel(false);
       setConfirmRidePopupPanel(true);
 
     } catch (error) {
-      console.error('Error confirming ride:', error?.response?.data?.message || error.message);
+      // console.error('Error confirming ride:', error?.response?.data?.message || error.message);
       alert('Failed to confirm ride. Please try again.');
     }
   }

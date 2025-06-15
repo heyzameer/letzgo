@@ -4,7 +4,7 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 
 const ConfirmRidePopUp = (props) => {
-    console.log("ConfirmRidePopUp props:", props);
+    // console.log("ConfirmRidePopUp props:", props);
     const [ otp, setOtp ] = useState('')
     const [ error, setError ] = useState('');
     const navigate = useNavigate()

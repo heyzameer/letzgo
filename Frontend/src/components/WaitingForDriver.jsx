@@ -20,7 +20,7 @@ const WaitingForDriver = (props) => {
         className='p-1 text-center w-[93%] absolute top-0'
         onClick={async () => {
           // Send cancel ride request to backend
-          console.log("Cancelling ride with ID:", props.ride?._id);
+          // console.log("Cancelling ride with ID:", props.ride?._id);
           if (props.ride?._id) {
             await axios.post(
               `${import.meta.env.VITE_BASE_URL}/api/ride/cancel-by-user`,

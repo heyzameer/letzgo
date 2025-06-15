@@ -47,7 +47,7 @@ const Home = () => {
   const user = userContext?.user;
 
   useEffect(() => {
-    console.log("User complete data:", user);
+    // console.log("User complete data:", user);
     socket.emit('join', { userType: "user", userId: user?.user?._id });
     setCancelMessage(null);
   }, [user]);
@@ -63,7 +63,7 @@ const Home = () => {
 
   useEffect(() => {
     socket.on('ride-confirmed', (ride) => {
-      console.log("ride-confirmed receivedd:", ride);
+      // console.log("ride-confirmed receivedd:", ride);
       setWaitingForDriver(true);
       setVehicleFound(false);
       setRide(ride);
@@ -71,14 +71,14 @@ const Home = () => {
     });
 
     socket.on('ride-started', ride => {
-      console.log("ride")
+      // console.log("ride")
       setWaitingForDriver(false)
       navigate('/riding', { state: { ride } }) // Updated navigate to include ride data
     });
 
     // Handle captain cancellation: return user to confirm ride panel
     socket.on('ride-cancelled-by-captain', (data) => {
-      console.log("ride-cancelled-by-captain:", data);
+      // console.log("ride-cancelled-by-captain:", data);
       setWaitingForDriver(false);
       setVehicleFound(false);
       setCancelMessage("The captain cancelled your ride. Please confirm again or wait for another captain.");
@@ -104,7 +104,7 @@ const Home = () => {
 
       })
       setPickupSuggestions(response.data)
-      console.log(response.data)
+      // console.log(response.data)
     } catch {
       // handle error
     }
@@ -120,7 +120,7 @@ const Home = () => {
         }
       })
       setDestinationSuggestions(response.data)
-      console.log(response.data)
+      // console.log(response.data)
     } catch {
       // handle error
     }
@@ -141,7 +141,7 @@ const Home = () => {
       }
     })
 
-    console.log(response.data)
+    // console.log(response.data)
     setFare(response.data)
   }
 
@@ -156,7 +156,7 @@ const Home = () => {
         Authorization: `Bearer ${localStorage.getItem('token')}`
       }
     })
-    console.log(response.data);
+    // console.log(response.data);
   }
 
   const submitHandler = (e) => {
@@ -371,120 +371,3 @@ const Home = () => {
 };
 
 export default Home;
-// import React, { useContext, useEffect, useRef, useState } from 'react';
-// import gsap from 'gsap';
-// import { useGSAP } from '@gsap/react';
-// import 'remixicon/fonts/remixicon.css'
-// import LocationSearchPanel from '../components/LocationSearchPanel';
-// import VehiclePanel from '../components/VehiclePanel';
-// import ConfirmRide from '../components/ConfirmRide';
-// import LookingForDriver from '../components/LookingForDriver';
-// import WaitingForDriver from '../components/WaitingForDriver';
-// import axios from 'axios';
-// import { SocketContext } from '../context/SocketContext';
-// import { UserDataContext } from '../context/UserContext';
-// import { useNavigate } from 'react-router-dom';
-// import LiveTracking from '../components/LiveTracking';
-
-
-// const Home = () => {
-//   const [pickup, setPickup] = useState("");
-//   const [destination, setDestination] = useState("");
-//   const [vehicleType, setVehicleType] = useState(null);
-//   const [panelOpen, setPanelOpen] = useState(false);
-//   const [vehiclePanel, setVehiclePanel] = useState(false);
-//   const [confirmRidePanel, setconfirmRidePanel] = useState(false);
-//   const [vehicleFound, setVehicleFound] = useState(false);
-//   const [WaitingForDriverState, setWaitingForDriver] = useState(false);
-
-//   const panelRef = useRef(null);
-//   const panelCloseRef = useRef(null)
-//   const vehiclePanelRef = useRef(null);
-//   const confirmRidePanelRef = useRef(null);
-//   const vehicleFoundRef = useRef(null);
-//   const WaitingForDriverRef = useRef(null);
-
-//   const [pickupSuggestions, setPickupSuggestions] = useState([])
-//   const [destinationSuggestions, setDestinationSuggestions] = useState([])
-//   const [activeField, setActiveField] = useState(null)
-
-//   const [fare, setFare] = useState({});
-//   const [ride, setRide] = useState(null);
-
-//   const navigate = useNavigate();
-
-//   const { socket } = useContext(SocketContext);
-//   const userContext = useContext(UserDataContext);
-//   const user = userContext?.user;
-
-//   useEffect(() => {
-//     console.log("User complete data:", user);
-//     socket.emit('join', { userType: "user", userId: user?.user._id });
-//   }, [user]);
-
-//   socket.on('ride-confirmed', (ride) => {
-//     console.log("ride-confirmed received:", ride);
-//     setWaitingForDriver(true);
-//     setVehicleFound(false);
-//     setRide(ride);
-//   });
-
-//   socket.on('ride-started', ride => {
-//     console.log("ride")
-//     setWaitingForDriver(false)
-//     navigate('/riding', { state: { ride } }) // Updated navigate to include ride data
-//   })
-
-
-//   const handlePickupChange = async (e) => {
-//     setPickup(e.target.value)
-//     try {
-//       const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/maps/get-suggestions`, {
-//         params: { input: e.target.value },
-//         headers: {
-//           Authorization: `Bearer ${localStorage.getItem('token')}`
-//         }
-
-//       })
-//       setPickupSuggestions(response.data)
-//       console.log(response.data)
-//     } catch {
-//       // handle error
-//     }
-//   }
-
-//   const handleDestinationChange = async (e) => {
-//     setDestination(e.target.value)
-//     try {
-//       const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/maps/get-suggestions`, {
-//         params: { input: e.target.value },
-//         headers: {
-//           Authorization: `Bearer ${localStorage.getItem('token')}`
-//         }
-//       })
-//       setDestinationSuggestions(response.data)
-//       console.log(response.data)
-//     } catch {
-//       // handle error
-//     }
-//   }
-
-
-//   async function findTrip() {
-//     if (pickup && destination) {
-//       setVehiclePanel(true)
-//       setPanelOpen(false)
-//     }
-
-
-//     const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/ride/get-fare`, {
-//       params: { pickup, destination },
-//       headers: {
-//         Authorization: `Bearer ${localStorage.getItem('token')}`
-//       }
-//     })
-
-//     console.log(response.data)
-//     setFare(response.data)
-//   }
-

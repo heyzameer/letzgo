@@ -12,12 +12,7 @@ const UserSignup = () => {
 
   const navigate = useNavigate()
 
-
-
   const { user, setUser } = useContext(UserDataContext)
-
-
-
 
   const [error, setError] = useState('');
 

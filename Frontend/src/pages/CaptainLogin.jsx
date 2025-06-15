@@ -42,7 +42,7 @@ const Captainlogin = () => {
     <div className='p-7 h-screen flex flex-col justify-between'>
       <div>
         <img
-          className="w-30 h-30 object-contain "
+          className="w-30 h-30 mx-auto object-contain "
           src={logo}
           alt="LetzGo Logo"
         />

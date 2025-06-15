@@ -28,7 +28,7 @@ const Riding = () => {
 
   useEffect(() => {
     socket.on('ride-ended', (data) => {
-      console.log("Ride finished:", data);
+      // console.log("Ride finished:", data);
       navigate('/home');
     });
     // Cleanup
@@ -51,7 +51,7 @@ const Riding = () => {
     });
 
     const order = await orderRes.json();
-    console.log("Order created:", order);
+    // console.log("Order created:", order);
     if (!order.id) {
       alert("Failed to create order");
       return;
@@ -66,14 +66,14 @@ const Riding = () => {
       description: "Complete your ride payment",
       order_id: order.id,
       handler: async function (response) {
-        console.log("Payment success:", response);
+        // console.log("Payment success:", response);
 
-        console.log("Verifying with:", {
-  razorpay_order_id: response.razorpay_order_id,
-  razorpay_payment_id: response.razorpay_payment_id,
-  razorpay_signature: response.razorpay_signature,
-  rideId: ride?._id
-});
+//         console.log("Verifying with:", {
+//   razorpay_order_id: response.razorpay_order_id,
+//   razorpay_payment_id: response.razorpay_payment_id,
+//   razorpay_signature: response.razorpay_signature,
+//   rideId: ride?._id
+// });
 
         // 3. Verify payment on backend
         const verifyRes = await fetch(`${import.meta.env.VITE_BASE_URL}/api/ride/verify-payment`, {
