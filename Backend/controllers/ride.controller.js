@@ -24,22 +24,23 @@ module.exports.createRide = async (req, res) => {
 
         // console.log('Ride Created org :', ride);
         const pickupCoordinates = await mapService.getAdressCoordinates(pickup);
+        const destinationCoordinates = await mapService.getAdressCoordinates(destination);
+        console.log('Pickup Coordinates:', pickupCoordinates);
+        console.log('Destination Coordinates:', destinationCoordinates);
         // console.log('Pickup Coordinates org:', pickupCoordinates);
         const captainsInTheRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd, pickupCoordinates.lng, 2, vehicleType);
-        // console.log('Captains in the radius:', captainsInTheRadius);
         ride.otp = "";
-        // console.log('Captains in the radius:', captainsInTheRadius);
         const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user');
+        // Send destination coordinates with rideWithUser
         captainsInTheRadius.map(captain => {
-
             sendMessageToSocketId(captain.socketId, {
                 event: 'new-ride',
-                data: rideWithUser
+                data: {
+                    ...rideWithUser.toObject(),
+                    destinationLocation: destinationCoordinates
+                }
             })
-
         })
-
-
     }
     catch (error) {
         // console.error('Error creating ride:', error);

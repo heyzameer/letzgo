@@ -13,6 +13,7 @@ import { useEffect } from 'react'
 import axios from 'axios'
 import LiveTracking from '../components/LiveTracking'
 
+const GOOGLE_MAPS_LIBRARIES = ['places'];
 
 const CaptainHome = () => {
   const [ridePopupPanel, setRidePopupPanel] = useState(false)
@@ -56,7 +57,7 @@ const CaptainHome = () => {
 
   useEffect(() => {
     socket.on('new-ride', (data) => {
-      // console.log("New ride received:", data);
+      console.log("New ride received:", data);
       setRide(data)
       setRidePopupPanel(true)
       setConfirmRidePopupPanel(false)

@@ -3,7 +3,8 @@ import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api'
 
 const containerStyle = {
     width: '100%',
-    height: '100%',};
+    height: '100%',
+};
 
 const center = {
     lat: -3.745,
@@ -13,9 +14,10 @@ const center = {
 const LiveTracking = () => {
     const [ currentPosition, setCurrentPosition ] = useState(center);
 
-    // Use useJsApiLoader instead of <LoadScript> to avoid duplicate script injection
+    // Use the same libraries array everywhere to avoid Loader error
     const { isLoaded, loadError } = useJsApiLoader({
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        libraries: ['places'] // <-- Use only 'places' everywhere
     });
 
     useEffect(() => {
@@ -51,7 +53,7 @@ const LiveTracking = () => {
 
         updatePosition(); // Initial position update
 
-        const intervalId = setInterval(updatePosition, 1000); // Update every 10 seconds
+        const intervalId = setInterval(updatePosition, 1000); // Update every 1 second
         return () => clearInterval(intervalId);
     }, []);
 

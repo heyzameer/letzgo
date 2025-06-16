@@ -323,7 +323,7 @@ const Home = () => {
             Find Trip
           </button>}
         </div>
-        <div ref={panelRef} className='bg-white h-0 overflow-auto rounded-3xl transition-all duration-500 '>
+        <div ref={panelRef} className='bg-white h-0 overflow-auto  transition-all duration-500 '>
           <LocationSearchPanel
             suggestions={activeField === 'pickup' ? pickupSuggestions : destinationSuggestions}
             setPanelOpen={setPanelOpen}
