@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { CaptainDataContext } from '../context/CaptainContext'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import logo from '../assets/logoblack.png'
+
 
 const CaptainSignup = () => {
 
@@ -92,8 +94,11 @@ const submitHandler = async (e) => {
   return (
     <div className='py-5 px-5 h-screen flex flex-col justify-between'>
       <div>
-        <img className='w-20 mb-3' src="https://www.svgrepo.com/show/505031/uber-driver.svg" alt="" />
-
+    <img
+                className="w-30 h-30 mx-auto object-contain "
+                src={logo}
+                alt="LetzGo Logo"
+              />
         <form onSubmit={(e) => {
           submitHandler(e)
         }}>
@@ -203,6 +208,7 @@ const submitHandler = async (e) => {
         </form>
         <p className='text-center'>Already have a account? <Link to='/captain-login' className='text-blue-600'>Login here</Link></p>
       </div>
+      
       <div>
         <p className='text-[10px] mt-6 leading-tight'>This site is protected by reCAPTCHA and the <span className='underline'>Google Privacy
           Policy</span> and <span className='underline'>Terms of Service apply</span>.</p>

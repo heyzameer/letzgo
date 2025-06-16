@@ -2,6 +2,8 @@ import React, { useState, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { UserDataContext } from '../context/UserContext'
+import logo from '../assets/logoblack.png'
+
 
 const UserSignup = () => {
   const [email, setEmail] = useState('')
@@ -58,8 +60,11 @@ const UserSignup = () => {
     <div>
       <div className='p-7 h-screen flex flex-col justify-between'>
         <div>
-          <img className='w-16 mb-10' src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYQy-OIkA6In0fTvVwZADPmFFibjmszu2A0g&s" alt="" />
-
+          <img
+            className="w-30 h-30 mx-auto object-contain "
+            src={logo}
+            alt="LetzGo Logo"
+          />
           {error && (
             <div className="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded">{error}</div>
           )}
