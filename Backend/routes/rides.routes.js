@@ -108,7 +108,7 @@ router.post('/cancel-by-user',
     rideController.cancelRideByUser
 );
 
-router.get('/current-coordinates',
+router.get('/current-coordinates-captain',
     authMiddleware.authCaptain,
     async (req, res) => {
         try {
@@ -120,6 +120,26 @@ router.get('/current-coordinates',
             res.status(200).json({
                 lat: captain.location.ltd,
                 lng: captain.location.lng
+            });
+        } catch (err) {
+            res.status(500).json({ message: 'Failed to fetch coordinates', error: err.message });
+        }
+    }
+);
+
+router.get('/current-coordinates-user',
+    authMiddleware.authUser,
+    async (req, res) => {
+        try {
+            const userModel = require('../models/user.model');
+            const user = await userModel.findById(req.user._id);
+            if (!user || !user.location || typeof user.location.ltd !== 'number' || typeof user.location.lng !== 'number') {
+                return res.status(404).json({ message: 'Location not found' });
+            }
+            console.log('User current coordinates:', user.location);
+            res.status(200).json({
+                lat: user.location.ltd,
+                lng: user.location.lng
             });
         } catch (err) {
             res.status(500).json({ message: 'Failed to fetch coordinates', error: err.message });

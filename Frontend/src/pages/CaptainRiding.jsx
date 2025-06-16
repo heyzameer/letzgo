@@ -27,13 +27,14 @@ const CaptainRiding = () => {
         const fetchCurrentCoords = async () => {
             try {
                 const res = await axios.get(
-                    `${import.meta.env.VITE_BASE_URL}/api/ride/current-coordinates`,
+                    `${import.meta.env.VITE_BASE_URL}/api/ride/current-coordinates-captain`,
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem('token')}`
                         }
                     }
                 );
+                console.log("Current coordinates response:", res.data);
                 if (res.data && typeof res.data.lat === 'number' && typeof res.data.lng === 'number') {
                     setCurrentCoords({ lat: res.data.lat, lng: res.data.lng });
                 }

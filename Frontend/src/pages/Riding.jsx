@@ -4,6 +4,7 @@ import { useEffect, useContext } from 'react';
 import { SocketContext } from '../context/SocketContext';
 import { useNavigate } from 'react-router-dom';
 import LiveTracking from '../components/LiveTracking';
+import NavigationMap from '../components/NavigationMap'
 import car from '../assets/car.jpg'
 import auto from '../assets/auto.jpg'
 import bike from '../assets/moto.jpg'
@@ -125,19 +126,54 @@ const Riding = () => {
     ride?.captain?.vehicle?.vehicleType === 'bike'
   ) vehicleImg = bike;
 
+    // State for current (captain) location from backend
+    const [currentCoords, setCurrentCoords] = useState(null);
+
+  const destinationCoords = ride?.destinationLocation
+    ? { lat: ride.destinationLocation.ltd, lng: ride.destinationLocation.lng }
+    : null;
+
+
+    // Fetch current coordinates from backend API every 5 seconds
+        useEffect(() => {
+            let intervalId;
+            const fetchCurrentCoords = async () => {
+                try {
+                    const res = await axios.get(
+                        `${import.meta.env.VITE_BASE_URL}/api/ride/current-coordinates-user`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem('token')}`
+                            }
+                        }
+                    );
+                    if (res.data && typeof res.data.lat === 'number' && typeof res.data.lng === 'number') {
+                        setCurrentCoords({ lat: res.data.lat, lng: res.data.lng });
+                    }
+                } catch (err) {
+                    // Optionally handle error
+                }
+            };
+            fetchCurrentCoords();
+            intervalId = setInterval(fetchCurrentCoords, 500000);
+            return () => clearInterval(intervalId);
+        }, []);
+
+  console.log("Ride data in Riding:", ride);
+  console.log("Current coordinates:", currentCoords);
+  console.log("Destination coordinates:", destinationCoords);
+
   return (
     <div className='h-screen'>
-      {/* <Link to={'/home'} className='fixed h-10 w-10 bg-white flex items-center justify-center rounded-full top-5 left-5 shadow-md'>
-        <i className="text-lg font-medium ri-home-5-line"></i>
-      </Link> */}
       <div className='h-1/2'>
-
-      <LiveTracking/>
-        {/* <img
-          src='https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif'
-          alt="Background"
-          className='w-full h-full object-cover'
-        /> */}
+        {/* Map at the top */}
+            <div className='w-full' style={{ height: '79%' }}>
+                {currentCoords && destinationCoords ? (
+                    <NavigationMap origin={currentCoords} destination={destinationCoords} />
+                ) : (
+                    <LiveTracking />
+                )}
+            </div>
       </div>
       <div className='h-1/2 p-4'>
         <div className='flex items-center justify-between'>
