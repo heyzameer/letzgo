@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 
+// Enum for ride status
+const RideStatusEnum = {
+    PENDING: 'pending',
+    ACCEPTED: 'accepted',
+    ONGOING: 'ongoing',
+    COMPLETED: 'completed',
+    CANCELLED: 'cancelled'
+};
+
 const CaptainRideHistoryPanel = ({ open, setOpen }) => {
     const [rides, setRides] = useState([])
     const [loading, setLoading] = useState(true)
@@ -16,8 +25,10 @@ const CaptainRideHistoryPanel = ({ open, setOpen }) => {
                 }
             })
                 .then(res => {
-                    // Filter out only completed/cancelled rides
-                    const filtered = res.data.filter(ride => ride.status === 'completed' || ride.status === 'cancelled');
+                    // Filter out only completed/cancelled rides using Enum
+                    const filtered = res.data.filter(
+                        ride => ride.status === RideStatusEnum.COMPLETED || ride.status === RideStatusEnum.CANCELLED
+                    );
                     setRides(filtered)
                     setLoading(false)
                 })
@@ -70,7 +81,13 @@ const CaptainRideHistoryPanel = ({ open, setOpen }) => {
                             <div key={ride._id} className="border rounded-lg p-4 shadow-sm bg-gray-50">
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="font-semibold text-lg">{ride.pickup} → {ride.destination}</span>
-                                    <span className={`text-xs px-2 py-1 rounded ${ride.status === 'completed' ? 'bg-green-100 text-green-700' : ride.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                    <span className={`text-xs px-2 py-1 rounded ${
+                                        ride.status === RideStatusEnum.COMPLETED
+                                            ? 'bg-green-100 text-green-700'
+                                            : ride.status === RideStatusEnum.CANCELLED
+                                            ? 'bg-red-100 text-red-700'
+                                            : 'bg-yellow-100 text-yellow-700'
+                                    }`}>
                                         {ride.status}
                                     </span>
                                 </div>
