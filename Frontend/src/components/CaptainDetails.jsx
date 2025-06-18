@@ -1,11 +1,12 @@
-
-import React, { useContext } from 'react'
+import React, { useContext, useState } from 'react'
 import { CaptainDataContext } from '../context/CaptainContext'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import CaptainRideHistoryPanel from './CaptainRideHistoryPanel'
 
 const CaptainDetails = () => {
     const navigate = useNavigate();
+    const [historyPanelOpen, setHistoryPanelOpen] = useState(false);
     // Logout handler
     const handleLogout = async () => {
         try {
@@ -27,12 +28,10 @@ const CaptainDetails = () => {
         <div >
             <div className='flex items-center justify-between w-[910px]'>
                 <div className='flex items-center gap-4'>
-                 
                     {/* Captain Name */}
                     <h4 className='text-lg font-medium capitalize'>
                         {captain.fullname.firstname + " " + captain.fullname.lastname}
                     </h4>
-
                     {/* Icons side by side */}
                     <div className='flex gap-3 ml-6'>
                         <i
@@ -41,13 +40,18 @@ const CaptainDetails = () => {
                             onClick={() => navigate('/captain-profile')}
                         ></i>
                         <i
+                            className="ri-history-line text-2xl cursor-pointer"
+                            style={{ color: '#222' }}
+                            onClick={() => setHistoryPanelOpen(true)}
+                            title="View Booking History"
+                        ></i>
+                        <i
                             className="ri-logout-box-line text-2xl cursor-pointer"
                             style={{ color: '#222' }}
                             onClick={handleLogout}
                         ></i>
                     </div>
                 </div>
-
                 {/* Right section (optional, currently empty) */}
                 <div></div>
             </div>
@@ -69,6 +73,7 @@ const CaptainDetails = () => {
                 </div>
 
             </div>
+            <CaptainRideHistoryPanel open={historyPanelOpen} setOpen={setHistoryPanelOpen} />
         </div>
     )
 }
