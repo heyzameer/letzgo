@@ -196,6 +196,9 @@ module.exports.cancelRideByCaptain = async (req, res) => {
             console.warn('User socketId not found for ride:', ride._id);
         }
 
+        // Optionally, update ride status to cancelled
+        await rideModel.findByIdAndUpdate(rideId, { status: rideModel.StatusEnum.CANCELLED });
+
         return res.status(200).json({ message: 'Ride cancelled by captain and user notified.' });
     } catch (err) {
         // console.error('Error in cancelRideByCaptain:', err);
@@ -225,7 +228,7 @@ module.exports.cancelRideByUser = async (req, res) => {
         }
 
         // Optionally, update ride status to cancelled
-        await rideModel.findByIdAndUpdate(rideId, { status: 'cancelled' });
+        await rideModel.findByIdAndUpdate(rideId, { status: rideModel.StatusEnum.CANCELLED });
 
         return res.status(200).json({ message: 'Ride cancelled by user and captain notified.' });
     } catch (err) {

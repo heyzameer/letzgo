@@ -51,7 +51,7 @@ function initializeSocket(server) {
             const ride = await rideModel.findById(rideId).populate('user').populate('captain');
             if (ride) {
                 // End the ride
-                ride.status = 'completed';
+                ride.status = rideModel.StatusEnum.COMPLETED;
                 await ride.save();
                 // Notify both user and captain
                 if (ride.user.socketId) {

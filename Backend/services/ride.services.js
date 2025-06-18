@@ -103,7 +103,7 @@ module.exports.confirmRide = async ({
     await rideModel.findOneAndUpdate({
         _id: rideId
     }, {
-        status: 'accepted',
+        status: rideModel.StatusEnum.ACCEPTED,
         captain: captain._id
     })
 
@@ -143,7 +143,7 @@ module.exports.startRide = async ({ rideId, otp, captain }) => {
     await rideModel.findOneAndUpdate({
         _id: rideId
     }, {
-        status: 'ongoing'
+        status: rideModel.StatusEnum.ONGOING
     })
 
     return ride;
@@ -170,7 +170,7 @@ module.exports.endRide = async ({ rideId, captain }) => {
     await rideModel.findOneAndUpdate({
         _id: rideId
     }, {
-        status: 'completed'
+        status: rideModel.StatusEnum.COMPLETED
     })
 
     return ride;

@@ -1,6 +1,14 @@
 const mongoose = require('mongoose');
 
 
+const RideStatusEnum = Object.freeze({
+    PENDING: 'pending',
+    ACCEPTED: 'accepted',
+    ONGOING: 'ongoing',
+    COMPLETED: 'completed',
+    CANCELLED: 'cancelled'
+});
+
 const rideSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -26,8 +34,8 @@ const rideSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: [ 'pending', 'accepted', "ongoing", 'completed', 'cancelled' ],
-        default: 'pending',
+        enum: Object.values(RideStatusEnum),
+        default: RideStatusEnum.PENDING,
     },
 
     duration: {
@@ -57,6 +65,8 @@ const rideSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-}, { timestamps: true }) // <-- Add timestamps for createdAt/updatedAt
+}, { timestamps: true });
+
+rideSchema.statics.StatusEnum = RideStatusEnum;
 
 module.exports = mongoose.model('ride', rideSchema);
