@@ -1,28 +1,14 @@
 import React, { useContext, useState } from 'react'
 import { CaptainDataContext } from '../context/CaptainContext'
-import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import CaptainRideHistoryPanel from './CaptainRideHistoryPanel'
+import useCaptainLogout from '../hooks/useCaptainLogout'
 
 const CaptainDetails = () => {
     const navigate = useNavigate();
     const [historyPanelOpen, setHistoryPanelOpen] = useState(false);
-    // Logout handler
-    const handleLogout = async () => {
-        try {
-            await axios.get(`${import.meta.env.VITE_BASE_URL}/api/captains/logout`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-        } catch (err) {
-            // ignore error, proceed to logout anyway
-        }
-        localStorage.removeItem('token');
-        navigate('/captain-login', { replace: true });
-    };
-
     const { captain } = useContext(CaptainDataContext)
+    const logout = useCaptainLogout();
 
     return (
         <div >
@@ -48,7 +34,7 @@ const CaptainDetails = () => {
                         <i
                             className="ri-logout-box-line text-2xl cursor-pointer"
                             style={{ color: '#222' }}
-                            onClick={handleLogout}
+                            onClick={logout}
                         ></i>
                     </div>
                 </div>
