@@ -27,10 +27,10 @@ router.post('/login', [
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
 ], captainController.loginCaptain);
 
-router.get('/profile',auth.authCaptain, captainController.getCaptainProfile);
+router.get('/profile', auth.authRole('captain'), captainController.getCaptainProfile);
 
 router.put('/profile',
-    auth.authCaptain,
+    auth.authRole('captain'),
     [
         body('fullname.firstname').optional().isLength({ min: 3 }).withMessage('First name must be at least 3 characters long'),
         body('fullname.lastname').optional().isLength({ min: 3 }).withMessage('Last name must be at least 3 characters long'),
@@ -43,7 +43,7 @@ router.put('/profile',
     captainController.updateCaptainProfile
 );
 
-router.get('/logout', auth.authCaptain, captainController.logoutCaptain);
+router.get('/logout', auth.authRole('captain'), captainController.logoutCaptain);
 
 router.post('/forgot-password',
     body('email').isEmail().withMessage('Invalid Email'),

@@ -23,14 +23,14 @@ router.post('/login', [
 ], userController.loginUser);
 
 router.get('/profile',
-    authMiddleware.authUser,
+    authMiddleware.authRole('user'),
     userController.getUserProfile
 );
 
-router.get('/logout', authMiddleware.authUser, userController.logoutUser);
+router.get('/logout', authMiddleware.authRole('user'), userController.logoutUser);
 
 router.put('/profile',
-    authMiddleware.authUser,
+    authMiddleware.authRole('user'),
     [
         body('fullName.firstName').optional().isLength({ min: 3 }).withMessage('First name must be at least 3 characters long'),
         body('fullName.lastName').optional().isLength({ min: 3 }).withMessage('Last name must be at least 3 characters long'),

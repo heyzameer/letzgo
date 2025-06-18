@@ -1,8 +1,28 @@
+const jwt = require('jsonwebtoken');
 const userModel = require('../models/user.model');
 const captainModel = require('../models/captain.model');
 const blacklistTokenModel = require('../models/blacklistToken.model');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+
+// Role-based authentication middleware
+exports.authRole = (role) => async (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'No token provided' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.role !== role) {
+            return res.status(403).json({ message: 'Forbidden: Invalid role' });
+        }
+        if (role === 'user') {
+            req.user = await userModel.findById(decoded._id);
+        } else if (role === 'captain') {
+            req.captain = await captainModel.findById(decoded._id);
+        }
+        next();
+    } catch (err) {
+        return res.status(401).json({ message: 'Invalid token' });
+    }
+};
 
 module.exports.authUser = async (req, res, next) => {
   

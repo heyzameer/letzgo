@@ -7,7 +7,7 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
 router.post('/create',
-    authMiddleware.authUser,
+    authMiddleware.authRole('user'),
     body('pickup').isString().isLength({ min: 3 }).withMessage('Invalid pickup address'),
     body('destination').isString().isLength({ min: 3 }).withMessage('Invalid destination address'),
     body('vehicleType').isString().isIn([ 'auto', 'car', 'moto' ]).withMessage('Invalid vehicle type'),
@@ -15,20 +15,20 @@ router.post('/create',
 )
 
 router.get('/get-fare',
-    authMiddleware.authUser,
+    authMiddleware.authRole('user'),
     query('pickup').isString().isLength({ min: 3 }).withMessage('Invalid pickup address'),
     query('destination').isString().isLength({ min: 3 }).withMessage('Invalid destination address'),
     rideController.getFare
 );
 
 router.post('/confirm',
-    authMiddleware.authCaptain,
+    authMiddleware.authRole('captain'),
     body('rideId').isMongoId().withMessage('Invalid ride id'),
     rideController.confirmRide
 )
 
 router.get('/start-ride',
-    authMiddleware.authCaptain,
+    authMiddleware.authRole('captain'),
     query('rideId').isMongoId().withMessage('Invalid ride id'),
     query('otp').isString().isLength({ min: 4, max: 4 }).withMessage('Invalid OTP'),
     rideController.startRide
@@ -36,13 +36,13 @@ router.get('/start-ride',
 
 
 router.post('/end-ride',
-    authMiddleware.authCaptain,
+    authMiddleware.authRole('captain'),
     body('rideId').isMongoId().withMessage('Invalid ride id'),
     rideController.endRide
 )
 
 router.post('/create-order',
-    authMiddleware.authUser,
+    authMiddleware.authRole('user'),
     body('amount').isNumeric().withMessage('Amount is required'),
     async (req, res) => {
         try {
@@ -66,7 +66,7 @@ router.post('/create-order',
 );
 
 router.post('/verify-payment',
-    authMiddleware.authUser,
+    authMiddleware.authRole('user'),
     async (req, res) => {
         try {
             const { razorpay_order_id, razorpay_payment_id, razorpay_signature, rideId } = req.body;
@@ -97,19 +97,19 @@ router.post('/verify-payment',
 );
 
 router.post('/cancel-by-captain',
-    authMiddleware.authCaptain,
+    authMiddleware.authRole('captain'),
     body('rideId').isMongoId().withMessage('Invalid ride id'),
     rideController.cancelRideByCaptain
 );
 
 router.post('/cancel-by-user',
-    authMiddleware.authUser,
+    authMiddleware.authRole('user'),
     body('rideId').isMongoId().withMessage('Invalid ride id'),
     rideController.cancelRideByUser
 );
 
 router.get('/current-coordinates-captain',
-    authMiddleware.authCaptain,
+    authMiddleware.authRole('captain'),
     async (req, res) => {
         try {
             const captainModel = require('../models/captain.model');
@@ -128,7 +128,7 @@ router.get('/current-coordinates-captain',
 );
 
 router.get('/current-coordinates-user',
-    authMiddleware.authUser,
+    authMiddleware.authRole('user'),
     async (req, res) => {
         try {
             const userModel = require('../models/user.model');
@@ -149,7 +149,7 @@ router.get('/current-coordinates-user',
 
 // Get ride history for a user
 router.get('/user/history',
-    authMiddleware.authUser,
+    authMiddleware.authRole('user'),
     async (req, res) => {
         try {
             const rideModel = require('../models/ride.model');
@@ -165,7 +165,7 @@ router.get('/user/history',
 
 // Get ride history for a captain
 router.get('/captain/history',
-    authMiddleware.authCaptain,
+    authMiddleware.authRole('captain'),
     async (req, res) => {
         try {
             const rideModel = require('../models/ride.model');

@@ -84,7 +84,8 @@ const captainSchema = new mongoose.Schema({
 captainSchema.index({ location: '2dsphere' });
 
 captainSchema.methods.generateAuthToken = function () {
-    const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    // Add role to the JWT payload
+    const token = jwt.sign({ _id: this._id, role: 'captain' }, process.env.JWT_SECRET, { expiresIn: '24h' });
     return token;
 }
 
