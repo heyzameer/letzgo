@@ -147,4 +147,36 @@ router.get('/current-coordinates-user',
     }
 );
 
+// Get ride history for a user
+router.get('/user/history',
+    authMiddleware.authUser,
+    async (req, res) => {
+        try {
+            const rideModel = require('../models/ride.model');
+            const rides = await rideModel.find({ user: req.user._id })
+                .populate('captain')
+                .sort({ createdAt: -1 });
+            res.status(200).json(rides);
+        } catch (err) {
+            res.status(500).json({ message: 'Failed to fetch user ride history', error: err.message });
+        }
+    }
+);
+
+// Get ride history for a captain
+router.get('/captain/history',
+    authMiddleware.authCaptain,
+    async (req, res) => {
+        try {
+            const rideModel = require('../models/ride.model');
+            const rides = await rideModel.find({ captain: req.captain._id })
+                .populate('user')
+                .sort({ createdAt: -1 });
+            res.status(200).json(rides);
+        } catch (err) {
+            res.status(500).json({ message: 'Failed to fetch captain ride history', error: err.message });
+        }
+    }
+);
+
 module.exports = router;

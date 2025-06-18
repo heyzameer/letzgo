@@ -53,6 +53,10 @@ const rideSchema = new mongoose.Schema({
         select: false,
         required: false,
     },
-})
+    rideDate: {
+        type: Date,
+        default: Date.now
+    },
+}, { timestamps: true }) // <-- Add timestamps for createdAt/updatedAt
 
 module.exports = mongoose.model('ride', rideSchema);

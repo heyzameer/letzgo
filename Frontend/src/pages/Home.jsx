@@ -12,6 +12,7 @@ import { SocketContext } from '../context/SocketContext';
 import { UserDataContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import LiveTracking from '../components/LiveTracking';
+import UserRideHistoryPanel from '../components/UserRideHistoryPanel';
 
 
 const Home = () => {
@@ -24,6 +25,7 @@ const Home = () => {
   const [vehicleFound, setVehicleFound] = useState(false);
   const [WaitingForDriverState, setWaitingForDriver] = useState(false);
   const [cancelMessage, setCancelMessage] = useState(null);
+  const [historyPanelOpen, setHistoryPanelOpen] = useState(false);
 
   const panelRef = useRef(null);
   const panelCloseRef = useRef(null)
@@ -262,26 +264,30 @@ const Home = () => {
       </div>
 
       <div className='flex flex-col justify-end h-screen absolute top-0 w-full z-10'>
-      {/* <div className='flex flex-col justify-end h-screen absolute top-0 w-full z-10'> */}
         <div className='h-[30%] p-6 bg-white relative'>
           {/* Profile icon: show only when panel is down (panelOpen is false) */}
-           {!panelOpen && (
-            <i
-              className="ri-logout-box-line text-2xl absolute right-6 top-6 cursor-pointer"
-              style={{ color: '#222' }}
-              onClick={handleLogout}
-            ></i>
+          {!panelOpen && (
+            <>
+              <i
+                className="ri-logout-box-line text-2xl absolute right-6 top-6 cursor-pointer"
+                style={{ color: '#222' }}
+                onClick={handleLogout}
+              ></i>
+              <i
+                className="ri-profile-line text-2xl absolute right-18 top-6 cursor-pointer"
+                style={{ color: '#222' }}
+                onClick={() => navigate('/user-profile')}
+              ></i>
+              {/* History icon */}
+              <i
+                className="ri-history-line text-2xl absolute right-32 top-6 cursor-pointer"
+                style={{ color: '#222' }}
+                onClick={() => setHistoryPanelOpen(true)}
+                title="View Ride History"
+              ></i>
+            </>
           )}
           
-          {!panelOpen && (
-            <i
-              className="ri-profile-line text-2xl absolute right-18 top-6 cursor-pointer"
-              style={{ color: '#222' }}
-              onClick={() => navigate('/user-profile')}
-            ></i>
-          )}
-
-         
           {/* Down arrow: show only when panel is up (panelOpen is true) */}
           {panelOpen && (
             <h5
@@ -366,6 +372,8 @@ const Home = () => {
           setVehicleFound={setVehicleFound}
           vehicleType={vehicleType} />
       </div>
+
+      <UserRideHistoryPanel open={historyPanelOpen} setOpen={setHistoryPanelOpen} />
     </div>
   );
 };
