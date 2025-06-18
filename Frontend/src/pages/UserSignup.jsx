@@ -17,10 +17,30 @@ const UserSignup = () => {
   const { user, setUser } = useContext(UserDataContext)
 
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!firstName.trim()) newErrors.firstName = "First name is required";
+    else if (firstName.trim().length < 3) newErrors.firstName = "First name must be at least 3 characters long";
+    if (!lastName.trim()) newErrors.lastName = "Last name is required";
+    else if (lastName.trim().length < 3) newErrors.lastName = "Last name must be at least 3 characters long";
+    if (!email.trim()) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Please enter a valid email";
+    if (!password) newErrors.password = "Password is required";
+    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters long";
+    return newErrors;
+  };
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    setError(''); // clear previous error
+    setError('');
+    const validationErrors = validateForm();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      setError("Please fix the errors below.");
+      return;
+    }
 
     const newUser = {
       fullName: {
@@ -33,7 +53,7 @@ const UserSignup = () => {
 
     try {
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/register`, newUser);
-
+      console.log(response.data);
       if (response.status === 201) {
         const data = response.data;
         setUser(data.user);
@@ -69,62 +89,57 @@ const UserSignup = () => {
             <div className="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded">{error}</div>
           )}
 
-          <form onSubmit={(e) => {
-            submitHandler(e)
-          }}>
-
+          <form onSubmit={submitHandler}>
             <h3 className='text-lg w-1/2  font-medium mb-2'>What's your name</h3>
             <div className='flex gap-4 mb-7'>
-              <input
-                required
-                className='bg-[#eeeeee] w-1/2 rounded-lg px-4 py-2 border  text-lg placeholder:text-base'
-                type="text"
-                placeholder='First name'
-                value={firstName}
-                onChange={(e) => {
-                  setFirstName(e.target.value)
-                }}
-              />
-              <input
-                required
-                className='bg-[#eeeeee] w-1/2  rounded-lg px-4 py-2 border  text-lg placeholder:text-base'
-                type="text"
-                placeholder='Last name'
-                value={lastName}
-                onChange={(e) => {
-                  setLastName(e.target.value)
-                }}
-              />
+              <div className="w-1/2">
+                <input
+                  required
+                  className='bg-[#eeeeee] w-full rounded-lg px-4 py-2 border  text-lg placeholder:text-base'
+                  type="text"
+                  placeholder='First name'
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+                {errors.firstName && <div className="text-red-600 text-xs mt-1">{errors.firstName}</div>}
+              </div>
+              <div className="w-1/2">
+                <input
+                  required
+                  className='bg-[#eeeeee] w-full  rounded-lg px-4 py-2 border  text-lg placeholder:text-base'
+                  type="text"
+                  placeholder='Last name'
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+                {errors.lastName && <div className="text-red-600 text-xs mt-1">{errors.lastName}</div>}
+              </div>
             </div>
 
             <h3 className='text-lg font-medium mb-2'>What's your email</h3>
             <input
               required
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value)
-              }}
-              className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
+              onChange={(e) => setEmail(e.target.value)}
+              className='bg-[#eeeeee] mb-1 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
               type="email"
               placeholder='email@example.com'
             />
+            {errors.email && <div className="text-red-600 text-xs mb-2">{errors.email}</div>}
 
             <h3 className='text-lg font-medium mb-2'>Enter Password</h3>
-
             <input
               className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value)
-              }}
+              onChange={(e) => setPassword(e.target.value)}
               required type="password"
               placeholder='password'
             />
+            {errors.password && <div className="text-red-600 text-xs mb-2">{errors.password}</div>}
 
             <button
               className='bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
             >Create account</button>
-
           </form>
           <p className='text-center'>Already have a account? <Link to='/login' className='text-blue-600'>Login here</Link></p>
         </div>
