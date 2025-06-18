@@ -5,10 +5,9 @@ const captainService = require('../services/captain.service');
 const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
 
-const otpStore = {};
+const otpStore = {}; // In-memory OTP store for demo
 
 module.exports.registerCaptain = async (req, res, next) => {
-
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -22,24 +21,60 @@ module.exports.registerCaptain = async (req, res, next) => {
         return res.status(400).json({ message: 'Captain already exist' });
     }
 
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[email] = {
+        otp,
+        expires: Date.now() + 10 * 60 * 1000,
+        captainData: { fullname, email, password, vehicle }
+    };
 
+    // Send OTP via email using nodemailer (same config as forgot password)
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
+
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'LetzGo Captain Registration OTP',
+        text: `Your OTP for registration is: ${otp}`
+    });
+    console.log(`OTP sent to ${email}: ${otp}`);
+
+    return res.status(200).json({ message: 'OTP sent to your email for verification.' });
+}
+
+// New: OTP verification endpoint for captain registration
+module.exports.verifyCaptainOtp = async (req, res) => {
+    const { email, otp } = req.body;
+    const record = otpStore[email];
+    if (!record || record.otp !== otp || Date.now() > record.expires) {
+        return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+    // Proceed with registration
+    const { fullname, email: captainEmail, password, vehicle } = record.captainData;
     const hashedPassword = await captainModel.hashPassword(password);
-
-    const captain = await captainService.createCaptain({
+    const captain = await require('../services/captain.service').createCaptain({
         firstname: fullname.firstname,
         lastname: fullname.lastname,
-        email,
+        email: captainEmail,
         password: hashedPassword,
         color: vehicle.color,
         plate: vehicle.plate,
         capacity: vehicle.capacity,
         vehicleType: vehicle.vehicleType
     });
-
     const token = captain.generateAuthToken();
 
-    res.status(201).json({ token, captain });
+    // Remove OTP after use
+    delete otpStore[email];
 
+    return res.status(201).json({ message: 'Captain created successfully', captain, token });
 }
 
 module.exports.loginCaptain = async (req, res, next) => {

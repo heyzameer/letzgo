@@ -10,8 +10,12 @@ router.post('/register', [
     body('fullName.lastName').isLength({ min: 3 }).withMessage('Last name must be at least 3 characters long'),
     body('email').isEmail().withMessage('Invalid email format'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
-],userController.registerUser);
+], userController.registerUser);
 
+router.post('/verify-otp', [
+    body('email').isEmail().withMessage('Invalid email format'),
+    body('otp').isLength({ min: 4, max: 8 }).withMessage('Invalid OTP')
+], userController.verifyUserOtp);
 
 router.post('/login', [
     body('email').isEmail().withMessage('Invalid email format'),

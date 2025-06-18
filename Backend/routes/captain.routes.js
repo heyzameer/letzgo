@@ -16,6 +16,12 @@ router.post('/register', [
     captainController.registerCaptain
 )
 
+// New route for OTP verification after registration
+router.post('/verify-otp', [
+    body('email').isEmail().withMessage('Invalid Email'),
+    body('otp').isLength({ min: 4, max: 8 }).withMessage('Invalid OTP')
+], captainController.verifyCaptainOtp);
+
 router.post('/login', [
     body('email').isEmail().withMessage('Invalid Email'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')

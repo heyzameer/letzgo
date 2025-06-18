@@ -23,13 +23,49 @@ module.exports.registerUser = async (req, res, next) => {
         if (isUserAlreadyExist) {
             return res.status(400).json({ message: 'User already exists' });
         }
-        const hashedPassword = await userModel.hashPassword(password);
-        const user = await userService.createUser({ firstName, lastName, email, password: hashedPassword });
-        const token = await user.generateAuthToken();
-        return res.status(201).json({ message: 'User created successfully', user, token });
+        // Generate OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000, userData: { firstName, lastName, email, password } };
+
+        // Send OTP via email using nodemailer (same config as forgot password)
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'LetzGo Registration OTP',
+            text: `Your OTP for registration is: ${otp}`
+        });
+
+        return res.status(200).json({ message: 'OTP sent to your email for verification.' });
     } catch (error) {
         next(error);
     }
+}
+
+// New: OTP verification endpoint for registration
+module.exports.verifyUserOtp = async (req, res) => {
+    const { email, otp } = req.body;
+    const record = otpStore[email];
+    if (!record || record.otp !== otp || Date.now() > record.expires) {
+        return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+    // Proceed with registration
+    const { firstName, lastName, email: userEmail, password } = record.userData;
+    const hashedPassword = await userModel.hashPassword(password);
+    const user = await userService.createUser({ firstName, lastName, email: userEmail, password: hashedPassword });
+    const token = await user.generateAuthToken();
+
+    // Remove OTP after use
+    delete otpStore[email];
+
+    return res.status(201).json({ message: 'User created successfully', user, token });
 }
 
 module.exports.loginUser = async (req, res, next) => {
