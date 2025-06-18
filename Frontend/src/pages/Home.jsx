@@ -13,6 +13,10 @@ import { UserDataContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import LiveTracking from '../components/LiveTracking';
 import UserRideHistoryPanel from '../components/UserRideHistoryPanel';
+import useUserLogout from '../hooks/useUserLogout';
+import useSuggestions from '../hooks/useSuggestions';
+import useFare from '../hooks/useFare';
+import useCreateRide from '../hooks/useCreateRide';
 
 
 const Home = () => {
@@ -38,7 +42,16 @@ const Home = () => {
   const [destinationSuggestions, setDestinationSuggestions] = useState([])
   const [activeField, setActiveField] = useState(null)
 
-  const [fare, setFare] = useState({});
+  // Use custom hooks for suggestions
+  const pickupSuggestionsHook = useSuggestions();
+  const destinationSuggestionsHook = useSuggestions();
+
+
+  // Use custom hook for logout
+  const logout = useUserLogout();
+  const { fare, getFare } = useFare();
+  const { createRide } = useCreateRide();
+  // State for ride data
   const [ride, setRide] = useState(null);
 
   const navigate = useNavigate();
@@ -54,22 +67,13 @@ const Home = () => {
     setCancelMessage(null);
   }, [user]);
 
-
-  // useEffect(() => {
-  //   console.log("User complete data:", user);
-  //   // FIX: user._id, not user?.user._id
-  //   if (user && user._id) {
-  //     socket.emit("join", { userType: "user", userId: user._id });
-  //   }
-  // }, [user]);
-
   useEffect(() => {
     socket.on('ride-confirmed', (ride) => {
       // console.log("ride-confirmed receivedd:", ride);
       setWaitingForDriver(true);
       setVehicleFound(false);
       setRide(ride);
-      setCancelMessage(null); 
+      setCancelMessage(null);
     });
 
     socket.on('ride-started', ride => {
@@ -95,70 +99,33 @@ const Home = () => {
     };
   }, [socket, navigate]);
 
-  const handlePickupChange = async (e) => {
-    setPickup(e.target.value)
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/maps/get-suggestions`, {
-        params: { input: e.target.value },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-
-      })
-      setPickupSuggestions(response.data)
-      // console.log(response.data)
-    } catch {
-      // handle error
-    }
-  }
-
-  const handleDestinationChange = async (e) => {
-    setDestination(e.target.value)
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/maps/get-suggestions`, {
-        params: { input: e.target.value },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      setDestinationSuggestions(response.data)
-      // console.log(response.data)
-    } catch {
-      // handle error
-    }
-  }
 
 
+  // Suggestions handlers using custom hook
+  const handlePickupChange = (e) => {
+    setPickup(e.target.value);
+    pickupSuggestionsHook.getSuggestions(e.target.value);
+  };
+
+  const handleDestinationChange = (e) => {
+    setDestination(e.target.value);
+    destinationSuggestionsHook.getSuggestions(e.target.value);
+  };
+
+
+
+  // Find trip using custom hook for fare
   async function findTrip() {
     if (pickup && destination) {
       setVehiclePanel(true)
       setPanelOpen(false)
     }
-
-
-    const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/ride/get-fare`, {
-      params: { pickup, destination },
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-
-    // console.log(response.data)
-    setFare(response.data)
+    await getFare(pickup, destination);
   }
 
-
-  async function createRide() {
-    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/ride/create`, {
-      pickup,
-      destination,
-      vehicleType
-    }, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    // console.log(response.data);
+  // Use custom hook to create ride
+  async function handleCreateRide() {
+    await createRide({ pickup, destination, vehicleType });
   }
 
   const submitHandler = (e) => {
@@ -240,24 +207,9 @@ const Home = () => {
     }
   }, [WaitingForDriverState])
 
-  // Logout handler
-  const handleLogout = async () => {
-    try {
-      await axios.get(`${import.meta.env.VITE_BASE_URL}/api/users/logout`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-    } catch (err) {
-      // ignore error, proceed to logout anyway
-    }
-    localStorage.removeItem('token');
-    navigate('/login', { replace: true });
-  };
-
   return (
     <div className='relative  h-screen overflow-hidden'>
-    
+
 
       <div className='h-4/5 z-0'>
         <LiveTracking />
@@ -271,7 +223,7 @@ const Home = () => {
               <i
                 className="ri-logout-box-line text-2xl absolute right-6 top-6 cursor-pointer"
                 style={{ color: '#222' }}
-                onClick={handleLogout}
+                onClick={logout}
               ></i>
               <i
                 className="ri-profile-line text-2xl absolute right-18 top-6 cursor-pointer"
@@ -287,7 +239,7 @@ const Home = () => {
               ></i>
             </>
           )}
-          
+
           {/* Down arrow: show only when panel is up (panelOpen is true) */}
           {panelOpen && (
             <h5
@@ -331,7 +283,7 @@ const Home = () => {
         </div>
         <div ref={panelRef} className='bg-white h-0 overflow-auto  transition-all duration-500 '>
           <LocationSearchPanel
-            suggestions={activeField === 'pickup' ? pickupSuggestions : destinationSuggestions}
+            suggestions={activeField === 'pickup' ? pickupSuggestionsHook.suggestions : destinationSuggestionsHook.suggestions}
             setPanelOpen={setPanelOpen}
             setVehiclePanel={setVehiclePanel}
             setPickup={setPickup}
@@ -351,7 +303,7 @@ const Home = () => {
           destination={destination}
           vehicleType={vehicleType}
           fare={fare}
-          createRide={createRide}
+          createRide={handleCreateRide}
           setConfirmRidePanel={setconfirmRidePanel}
           setVehicleFound={setVehicleFound}
           cancelMessage={cancelMessage}
