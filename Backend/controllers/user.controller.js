@@ -79,6 +79,9 @@ module.exports.loginUser = async (req, res, next) => {
         if (!user) {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
+        if (user.isBlocked) {
+                return res.status(403).json({ message: 'Your account has been blocked. Please contact support.' });
+            }
         // Check if password is correct
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {

@@ -37,6 +37,8 @@ const UserLogin = () => {
 
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/login`, userData)
 
+      console.log("User login response:", response.data)
+
       if (response.status === 200) {
         const data = response.data
         setUser(data.user)
@@ -47,10 +49,16 @@ const UserLogin = () => {
       setEmail('')
       setPassword('')
     } catch (err) {
-      if (err.response && err.response.status === 401) {
-        setError('Invalid email or password')
-      } else if (err.response && err.response.data?.errors?.length > 0) {
-        setError(err.response.data.errors[0].msg)
+    //   if (err.response && err.response.status === 401) {
+    //     setError('Invalid email or password')
+    //   } else if (err.response && err.response.data?.errors?.length > 0) {
+    //     setError(err.response.data.errors[0].msg)
+    //   } else {
+    //     setError('Something went wrong. Please try again.')
+    //   }
+    // }
+    if (err.response && err.response.data) {
+        setError(err.response.data.message || 'Login failed')
       } else {
         setError('Something went wrong. Please try again.')
       }
