@@ -16,7 +16,7 @@ app.use(cors());
 connectToDb();
 app.use(cookieParser());
 
-app.get('/', (req, res) => {
+app.get('/hello', (req, res) => {
   res.send('Hello World!');
 });
 
