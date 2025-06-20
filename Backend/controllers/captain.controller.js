@@ -101,6 +101,11 @@ module.exports.loginCaptain = async (req, res, next) => {
         return res.status(401).json({ message: MSG_CAPTAIN_NOT_FOUND });
     }
 
+   
+    if (captain.isBlocked) {
+        return res.status(403).json({ message: 'Your profile may not be verified or has been blocked. Please contact support.' });
+    }
+
     // Check if password is correct
     const isMatch = await captain.comparePassword(password);
 
@@ -161,7 +166,7 @@ module.exports.updateCaptainProfile = async (req, res, next) => {
 module.exports.logoutCaptain = async (req, res, next) => {
     try {
         const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-        await blacklistTokenModel.create({token});
+        await blacklistTokenModel.create({ token });
         res.clearCookie('token');
         return res.status(200).json({ message: MSG_LOGOUT_SUCCESS });
     } catch (error) {

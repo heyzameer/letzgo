@@ -8,15 +8,32 @@ const bcrypt = require('bcrypt');
 exports.authRole = (role) => async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'No token provided' });
+
+    // Blacklist check (optional, but recommended)
+    const blacklistedToken = await blacklistTokenModel.findOne({ token });
+    if (blacklistedToken) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         if (decoded.role !== role) {
             return res.status(403).json({ message: 'Forbidden: Invalid role' });
         }
         if (role === 'user') {
-            req.user = await userModel.findById(decoded._id);
+            const user = await userModel.findById(decoded._id);
+            if (!user) return res.status(401).json({ message: 'User not found' });
+            if (user.isBlocked) {
+                return res.status(403).json({ message: 'Your account has been blocked. Please contact support.' });
+            }
+            req.user = user;
         } else if (role === 'captain') {
-            req.captain = await captainModel.findById(decoded._id);
+            const captain = await captainModel.findById(decoded._id);
+            if (!captain) return res.status(401).json({ message: 'Captain not found' });
+            if (captain.isBlocked) {
+                return res.status(403).json({ message: 'Your profile may not be verified or has been blocked. Please contact support.' });
+            }
+            req.captain = captain;
         }
         next();
     } catch (err) {

@@ -81,7 +81,7 @@ const captainSchema = new mongoose.Schema({
     },
     isBlocked: {
         type: Boolean,
-        default: false
+        default: true
     }
 },{ timestamps: true })
 
