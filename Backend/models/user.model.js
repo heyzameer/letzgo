@@ -17,7 +17,6 @@ const userSchema = new mongoose.Schema({
             maxlength: [20, 'Last name must be at most 20 characters long'],
         },
     },
-
     email: {
         type: String,
         required: true,
@@ -33,6 +32,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null,
     },
+    isBlocked: {
+        type: Boolean,
+        default: false
+    }
 });
 
 userSchema.methods.generateAuthToken = async function () {

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route,useLocation  } from 'react-router-dom'
 import Start from './pages/Start'
 import UserSignup from './pages/UserSignup'
 import UserLogin from './pages/UserLogin'
@@ -18,12 +18,21 @@ import UserProfile from './pages/UserProfile'
 import CaptainProfile from './pages/CaptainProfile'
 import CaptainForgotPassword from './pages/CaptainForgotPassword'
 import UserForgotPassword from './pages/UserForgotPassword'
+import AdminLogin from './pages/AdminLogin'
+import Admin from './pages/Admin'
+import AdminProtectWrapper from './pages/AdminProtectWrapper'
 
 const App = () => {
+   const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
   return (
     <div className="app-container">
        <div className="w-screen h-screen flex items-center justify-center">
-      <div className="w-[910px]  bg-white  overflow-auto scrollbar-hide">
+       <div
+        className={`${
+          isAdminRoute ? 'w-screen' : 'w-[910px]'
+        } bg-white overflow-auto scrollbar-hide`}
+      >
       <Routes>
         <Route path="/" element={<Start />} />
         <Route path="/signup" element={<UserSignup />} />
@@ -53,8 +62,16 @@ const App = () => {
             <CaptainProfile />
           </CaptainProtectWrapper>
         } />
-      </Routes>
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin" element={
+          <AdminProtectWrapper>
+            <Admin />
+          </AdminProtectWrapper>
+        } />
+ </Routes>
       </div>
+        
+     
        </div>
     </div>
   )
