@@ -30,6 +30,12 @@ router.post('/unblock-user', adminAuth, adminController.unblockUser);
 router.post('/block-captain', adminAuth, adminController.blockCaptain);
 router.post('/unblock-captain', adminAuth, adminController.unblockCaptain);
 
+// Delete user
+router.delete('/delete-user/:userId', adminAuth, adminController.deleteUser);
+
+// Delete captain
+router.delete('/delete-captain/:captainId', adminAuth, adminController.deleteCaptain);
+
 //route to create a new admin
 // router.post('/create-admin', [
 //     body('email').isEmail().withMessage('Invalid Email'),

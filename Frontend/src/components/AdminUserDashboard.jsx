@@ -38,6 +38,20 @@ const AdminUserDashboard = () => {
         }
     }
 
+    const handleDelete = async (userId) => {
+        if (!window.confirm('Are you sure you want to delete this user?')) return;
+        try {
+            await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/admin/delete-user/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('adminToken')}`
+                }
+            });
+            setRefresh(r => !r);
+        } catch {
+            alert('Failed to delete user');
+        }
+    };
+
     return (
         <div>
             <h2 className="text-xl font-semibold mb-6">Users Dashboard</h2>
@@ -51,6 +65,7 @@ const AdminUserDashboard = () => {
                             <th className="py-2 px-4 text-left">Email</th>
                             <th className="py-2 px-4 text-left">Status</th>
                             <th className="py-2 px-4 text-left">Action</th>
+                            <th className="py-2 px-4 text-left">Delete</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,6 +92,12 @@ const AdminUserDashboard = () => {
                                             onClick={() => handleBlockToggle(user._id, true)}
                                         >Block</button>
                                     )}
+                                </td>
+                                <td className="py-2 px-4">
+                                    <button
+                                        className="bg-red-700 text-white px-3 py-1 rounded"
+                                        onClick={() => handleDelete(user._id)}
+                                    >Delete</button>
                                 </td>
                             </tr>
                         ))}

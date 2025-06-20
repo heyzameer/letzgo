@@ -95,3 +95,31 @@ exports.createAdmin = async (req, res) => {
     await newAdmin.save();
     res.status(201).json({ message: 'Admin created successfully', admin: newAdmin });
 }
+
+// Delete user
+exports.deleteUser = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const user = await userModel.findByIdAndDelete(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to delete user' });
+    }
+};
+
+// Delete captain
+exports.deleteCaptain = async (req, res) => {
+    const { captainId } = req.params;
+    try {
+        const captain = await captainModel.findByIdAndDelete(captainId);
+        if (!captain) {
+            return res.status(404).json({ message: 'Captain not found' });
+        }
+        res.status(200).json({ message: 'Captain deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to delete captain' });
+    }
+};

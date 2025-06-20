@@ -38,6 +38,20 @@ const AdminCaptainDashboard = () => {
         }
     }
 
+    const handleDelete = async (captainId) => {
+        if (!window.confirm('Are you sure you want to delete this captain?')) return;
+        try {
+            await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/admin/delete-captain/${captainId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('adminToken')}`
+                }
+            });
+            setRefresh(r => !r);
+        } catch {
+            alert('Failed to delete captain');
+        }
+    }
+
     return (
         <div>
             <h2 className="text-xl font-semibold mb-6">Captains Dashboard</h2>
@@ -52,6 +66,7 @@ const AdminCaptainDashboard = () => {
                             <th className="py-2 px-4 text-left">Vehicle</th>
                             <th className="py-2 px-4 text-left">Status</th>
                             <th className="py-2 px-4 text-left">Action</th>
+                            <th className="py-2 px-4 text-left">Delete</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -79,6 +94,12 @@ const AdminCaptainDashboard = () => {
                                             onClick={() => handleBlockToggle(captain._id, true)}
                                         >Block</button>
                                     )}
+                                </td>
+                                <td className="py-2 px-4">
+                                    <button
+                                        className="bg-red-700 text-white px-3 py-1 rounded"
+                                        onClick={() => handleDelete(captain._id)}
+                                    >Delete</button>
                                 </td>
                             </tr>
                         ))}
