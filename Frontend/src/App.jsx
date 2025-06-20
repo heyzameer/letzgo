@@ -39,10 +39,10 @@ const App = () => {
         <Route path="/login" element={<UserLogin />} />
         <Route path="/user-forgot-password" element={<UserForgotPassword />} />
         <Route path="/captain-forgot-password" element={<CaptainForgotPassword />} />
-        <Route path="/riding" element={<Riding />} />
+        {/* <Route path="/riding" element={<Riding />} /> */}
         <Route path="/captain-signup" element={<CaptainSignup />} />
         <Route path="/captain-login" element={<CaptainLogin />} />
-        <Route path="/captain-riding" element={<CaptainRiding />} />
+        {/* <Route path="/captain-riding" element={<CaptainRiding />} /> */}
         <Route path="/home" element={<UserProtectWrapper><Home /></UserProtectWrapper>} />
         {/* <Route path="/home" element={<Home/>} /> */}
         <Route path='/user/logout'
@@ -50,11 +50,21 @@ const App = () => {
             <UserLogout />
           </UserProtectWrapper>
           } />
+        <Route path='/riding'
+          element={<UserProtectWrapper>
+            <Riding />
+          </UserProtectWrapper>
+          } />
         <Route path='/user-profile'
           element={<UserProfile />} />
         <Route path='/captain-home' element={
           <CaptainProtectWrapper>
             <CaptainHome />
+          </CaptainProtectWrapper>
+        } />
+        <Route path='/captain-riding' element={
+          <CaptainProtectWrapper>
+            <CaptainRiding />
           </CaptainProtectWrapper>
         } />
         <Route path='/captain-profile' element={
