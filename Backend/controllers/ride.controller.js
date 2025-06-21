@@ -71,7 +71,8 @@ module.exports.confirmRide = async (req, res) => {
         return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({ errors: errors.array() });
     }
 
-    const { rideId } = req.body;
+    const { rideId,ride } = req.body;
+    // console.log(ride);
 
     try {
         const ride = await rideService.confirmRide({
