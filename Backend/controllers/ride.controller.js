@@ -3,11 +3,12 @@ const mapService = require('../services/maps.service');
 const { validationResult } = require('express-validator');
 const { sendMessageToSocketId } = require('../socket');
 const rideModel = require('../models/ride.model');
+const HTTP_STATUS = require('../constants/httpstatus');
 
 module.exports.createRide = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
+        return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({ errors: errors.array() });
     }
     const { pickup, destination, vehicleType } = req.body;
 
@@ -20,7 +21,7 @@ module.exports.createRide = async (req, res) => {
         });
         // Send socketId in response if available
         const userSocketId = req.user.socketId || null;
-        res.status(201).json({ ...ride._doc, socketId: userSocketId });
+        res.status(HTTP_STATUS.CREATED).json({ ...ride._doc, socketId: userSocketId });
 
         // console.log('Ride Created org :', ride);
         const pickupCoordinates = await mapService.getAdressCoordinates(pickup);
@@ -44,30 +45,30 @@ module.exports.createRide = async (req, res) => {
     }
     catch (error) {
         // console.error('Error creating ride:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
     }
 }
 
 module.exports.getFare = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ errors: errors.array() });
     }
 
     const { pickup, destination } = req.query;
 
     try {
         const fare = await rideService.getFare(pickup, destination);
-        return res.status(200).json(fare);
+        return res.status(HTTP_STATUS.OK).json(fare);
     } catch (err) {
-        return res.status(500).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
 }
 
 module.exports.confirmRide = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
+        return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({ errors: errors.array() });
     }
 
     const { rideId } = req.body;
@@ -102,9 +103,9 @@ module.exports.confirmRide = async (req, res) => {
 
         // console.log("req recived and ewvent sent to user");
 
-        return res.status(200).json(ride);
+        return res.status(HTTP_STATUS.OK).json(ride);
     } catch (err) {
-        return res.status(500).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
 }
 
@@ -113,7 +114,7 @@ module.exports.confirmRide = async (req, res) => {
 module.exports.startRide = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ errors: errors.array() });
     }
 
     const { rideId, otp } = req.query;
@@ -129,9 +130,9 @@ module.exports.startRide = async (req, res) => {
             data: ride
         })
 
-        return res.status(200).json(ride);
+        return res.status(HTTP_STATUS.OK).json(ride);
     } catch (err) {
-        return res.status(500).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
 }
 
@@ -139,7 +140,7 @@ module.exports.startRide = async (req, res) => {
 module.exports.endRide = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ errors: errors.array() });
     }
 
     const { rideId } = req.body;
@@ -167,9 +168,9 @@ module.exports.endRide = async (req, res) => {
             data: ride
         })
 
-        return res.status(200).json(ride);
+        return res.status(HTTP_STATUS.OK).json(ride);
     } catch (err) {
-        return res.status(500).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
 }
 
@@ -179,7 +180,7 @@ module.exports.cancelRideByCaptain = async (req, res) => {
         // Find the ride and check if it exists and is accepted, and populate user to get socketId
         const ride = await rideModel.findOne({ _id: rideId, status: 'accepted' }).populate('user');
         if (!ride) {
-            return res.status(404).json({ message: 'Ride not found or not in accepted state' });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Ride not found or not in accepted state' });
         }
 
         // Defensive: ensure user is populated and has socketId
@@ -199,10 +200,10 @@ module.exports.cancelRideByCaptain = async (req, res) => {
         // Optionally, update ride status to cancelled
         await rideModel.findByIdAndUpdate(rideId, { status: rideModel.StatusEnum.CANCELLED });
 
-        return res.status(200).json({ message: 'Ride cancelled by captain and user notified.' });
+        return res.status(HTTP_STATUS.OK).json({ message: 'Ride cancelled by captain and user notified.' });
     } catch (err) {
         // console.error('Error in cancelRideByCaptain:', err);
-        return res.status(500).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
 }
 
@@ -213,7 +214,7 @@ module.exports.cancelRideByUser = async (req, res) => {
         // Find the ride and check if it exists and is pending or accepted, and populate captain to get socketId
         const ride = await rideModel.findOne({ _id: rideId, status: { $in: ['pending', 'accepted'] } }).populate('captain');
         if (!ride) {
-            return res.status(404).json({ message: 'Ride not found or not in cancellable state' });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Ride not found or not in cancellable state' });
         }
 
         // Defensive: ensure captain is populated and has socketId
@@ -230,10 +231,10 @@ module.exports.cancelRideByUser = async (req, res) => {
         // Optionally, update ride status to cancelled
         await rideModel.findByIdAndUpdate(rideId, { status: rideModel.StatusEnum.CANCELLED });
 
-        return res.status(200).json({ message: 'Ride cancelled by user and captain notified.' });
+        return res.status(HTTP_STATUS.OK).json({ message: 'Ride cancelled by user and captain notified.' });
     } catch (err) {
         // console.error('Error in cancelRideByUser:', err);
-        return res.status(500).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
 }
 
@@ -244,9 +245,9 @@ module.exports.getUserRideHistory = async (req, res) => {
             .find({ user: req.user._id })
             .populate('captain')
             .sort({ createdAt: -1 });
-        res.status(200).json(rides);
+        res.status(HTTP_STATUS.OK).json(rides);
     } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch user ride history', error: err.message });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Failed to fetch user ride history', error: err.message });
     }
 }
 
@@ -257,8 +258,8 @@ module.exports.getCaptainRideHistory = async (req, res) => {
             .find({ captain: req.captain._id })
             .populate('user')
             .sort({ createdAt: -1 });
-        res.status(200).json(rides);
+        res.status(HTTP_STATUS.OK).json(rides);
     } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch captain ride history', error: err.message });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Failed to fetch captain ride history', error: err.message });
     }
 }

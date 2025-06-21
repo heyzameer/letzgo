@@ -1106,3 +1106,18 @@ An unexpected error occurred on the server.
 
 - **Closing Notification When Another Captain Accepts the Ride:**  
   When a captain accepts a ride, all other captains who received the ride notification will have their notification closed in real time, preventing multiple captains from accepting the same ride.
+
+
+Admin panel 
+verification process of driver
+proper validation message for each field
+OTP verification -after register
+booking history
+ride history
+Captain dashboard
+move riding status to Enum
+move common message to constant
+role based token generation needed
+never call API from component
+use service or custom hook
+use Axios interceptor
