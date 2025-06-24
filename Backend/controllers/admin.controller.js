@@ -71,6 +71,11 @@ exports.unblockUser = async (req, res) => {
 exports.blockCaptain = async (req, res) => {
     const { captainId } = req.body;
     await captainModel.findByIdAndUpdate(captainId, { isBlocked: true });
+    const rideCount = await rideModel.countDocuments({captain:captainId, status: 'completed'});
+    const rideCancled = await rideModel.countDocuments({captain:captainId, status: 'cancled'});
+    if(rideCount<5 & rideCancled== 0){
+       res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'Captain cannot be blocked as they have completed less 3 rides ' });
+    }
     res.status(HTTP_STATUS.OK).json({ message: 'Captain blocked' });
 };
 

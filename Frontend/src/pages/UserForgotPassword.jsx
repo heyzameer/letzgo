@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import axios from 'axios'
 import { useNavigate, Link } from 'react-router-dom'
 import logo from '../assets/logoblack.png'
@@ -11,7 +11,23 @@ const UserForgotPassword = () => {
   const [newPassword, setNewPassword] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [timer, setTimer] = useState(60)
+  const timerRef = useRef(null)
   const navigate = useNavigate()
+
+  const startTimer = () => {
+    setTimer(60)
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setTimer(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
 
   const handleSendOtp = async (e) => {
     e.preventDefault()
@@ -21,8 +37,21 @@ const UserForgotPassword = () => {
       await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/forgot-password`, { email })
       setMessage('OTP sent to your email.')
       setStep(2)
+      startTimer()
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to send OTP.')
+    }
+  }
+
+  const handleResendOtp = async () => {
+    setError('')
+    setMessage('')
+    try {
+      await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/forgot-password`, { email })
+      setMessage('OTP resent to your email.')
+      startTimer()
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to resend OTP.')
     }
   }
 
@@ -85,6 +114,22 @@ const UserForgotPassword = () => {
             onChange={e => setOtp(e.target.value)}
             required
           />
+          <div className="flex items-center mb-4">
+            <span className="text-xs text-gray-600">
+              {timer > 0
+                ? `Resend OTP in ${timer}s`
+                : (
+                  <button
+                    type="button"
+                    className= "bg-black text-white p-2 rounded font-semibold"
+                    onClick={handleResendOtp}
+                  >
+                    Resend OTP
+                  </button>
+                )
+              }
+            </span>
+          </div>
           <label className="block mb-2 font-medium">New Password</label>
           <input
             type="password"
