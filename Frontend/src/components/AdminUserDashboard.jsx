@@ -56,7 +56,12 @@ const AdminUserDashboard = () => {
     }
 
     const handleDelete = async (userId) => {
-        if (!window.confirm('Are you sure you want to delete this user?')) return;
+        const user = users.find(u => u._id === userId);
+        let confirmMsg = 'Are you sure you want to delete this user?';
+        if (user) {
+            confirmMsg = `Are you sure you want to delete this user?\n\nName: ${user.fullName?.firstName || ''} ${user.fullName?.lastName || ''}\nEmail: ${user.email}`;
+        }
+        if (!window.confirm(confirmMsg)) return;
         try {
             await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/admin/delete-user/${userId}`, {
                 headers: {

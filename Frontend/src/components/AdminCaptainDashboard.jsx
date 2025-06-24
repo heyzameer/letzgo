@@ -56,7 +56,12 @@ const AdminCaptainDashboard = () => {
     }
 
     const handleDelete = async (captainId) => {
-        if (!window.confirm('Are you sure you want to delete this captain?')) return;
+        const captain = captains.find(c => c._id === captainId);
+        let confirmMsg = 'Are you sure you want to delete this captain?';
+        if (captain) {
+            confirmMsg = `Are you sure you want to delete this captain?\n\nName: ${captain.fullname?.firstname || ''} ${captain.fullname?.lastname || ''}\nEmail: ${captain.email}\nVehicle: ${captain.vehicle?.vehicleType || ''} (${captain.vehicle?.plate || ''})`;
+        }
+        if (!window.confirm(confirmMsg)) return;
         try {
             await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/admin/delete-captain/${captainId}`, {
                 headers: {
@@ -76,86 +81,106 @@ const AdminCaptainDashboard = () => {
             {error && <div className="text-red-600">{error}</div>}
             {!loading && !error && (
                 <>
-                    <table className="w-full border">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="py-2 px-4 text-left">Name</th>
-                                <th className="py-2 px-4 text-left">Email</th>
-                                <th className="py-2 px-4 text-left">Vehicle</th>
-                                <th className="py-2 px-4 text-left">Status</th>
-                                <th className="py-2 px-4 text-left">Action</th>
-                                <th className="py-2 px-4 text-left">Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {captains.map(captain => (
-                                <tr key={captain._id} className="border-t">
-                                    <td className="py-2 px-4">{captain.fullname?.firstname} {captain.fullname?.lastname}</td>
-                                    <td className="py-2 px-4">{captain.email}</td>
-                                    <td className="py-2 px-4">{captain.vehicle?.vehicleType} ({captain.vehicle?.plate})</td>
-                                    <td className="py-2 px-4">
-                                        {captain.isBlocked ? (
-                                            <span className="text-red-600">Blocked</span>
-                                        ) : (
-                                            <span className="text-green-600">Active</span>
-                                        )}
-                                    </td>
-                                    <td className="py-2 px-4">
-                                        {captain.isBlocked ? (
-                                            <button
-                                                className="bg-green-600 text-white px-3 py-1 rounded"
-                                                onClick={() => handleBlockToggle(captain._id, false)}
-                                            >Unblock</button>
-                                        ) : (
-                                            <button
-                                                className="bg-red-600 text-white px-3 py-1 rounded"
-                                                onClick={() => handleBlockToggle(captain._id, true)}
-                                            >Block</button>
-                                        )}
-                                    </td>
-                                    <td className="py-2 px-4">
+                <table className="w-full border">
+                    <thead>
+                        <tr className="bg-gray-100">
+                            <th className="py-2 px-4 text-left">Name</th>
+                            <th className="py-2 px-4 text-left">Email</th>
+                            <th className="py-2 px-4 text-left">Vehicle</th>
+                            <th className="py-2 px-4 text-left">Plate</th>
+                            <th className="py-2 px-4 text-left">Color</th>
+                            <th className="py-2 px-4 text-left">Capacity</th>
+                            <th className="py-2 px-4 text-left">Total Rides</th>
+                            <th className="py-2 px-4 text-left">Total Earnings</th>
+                            <th className="py-2 px-4 text-left">Total Distance</th>
+                            <th className="py-2 px-4 text-left">Status</th>
+                            <th className="py-2 px-4 text-left">Action</th>
+                            <th className="py-2 px-4 text-left">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {captains.map(captain => (
+                            <tr key={captain._id} className="border-t hover:bg-gray-50 transition">
+                                <td className="py-2 px-4">
+                                    <div className="font-semibold">{captain.fullname?.firstname} {captain.fullname?.lastname}</div>
+                                </td>
+                                <td className="py-2 px-4">{captain.email}</td>
+                                <td className="py-2 px-4">
+                                    <span className="font-semibold">{captain.vehicle?.vehicleType}</span>
+                                </td>
+                                <td className="py-2 px-4">{captain.vehicle?.plate}</td>
+                                <td className="py-2 px-4">{captain.vehicle?.color}</td>
+                                <td className="py-2 px-4">{captain.vehicle?.capacity}</td>
+                                <td className="py-2 px-4">{captain.totalRides ?? 0}</td>
+                                <td className="py-2 px-4">₹{captain.totalEarnings ?? 0}</td>
+                                <td className="py-2 px-4">{captain.totalDistance ? (captain.totalDistance / 1000).toFixed(1) + ' km' : '0 km'}</td>
+                                <td className="py-2 px-4">
+                                    {captain.isBlocked ? (
+                                        <span className="text-red-600 font-semibold">Blocked</span>
+                                    ) : (
+                                        <span className="text-green-600 font-semibold">Active</span>
+                                    )}
+                                </td>
+                                <td className="py-2 px-4">
+                                    {captain.isBlocked ? (
                                         <button
-                                            className="bg-red-700 text-white px-3 py-1 rounded"
-                                            onClick={() => handleDelete(captain._id)}
-                                        >Delete</button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {/* Pagination Controls */}
-                    <div className="flex items-center justify-between mt-4">
-                        <div>
-                            <span className="text-sm text-gray-600">
-                                Page {page} of {totalPages} | Total Captains: {total}
-                            </span>
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page <= 1}
-                            >
-                                Prev
-                            </button>
-                            <button
-                                className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page >= totalPages}
-                            >
-                                Next
-                            </button>
-                            <select
-                                className="ml-2 border rounded px-2 py-1"
-                                value={limit}
-                                onChange={e => { setLimit(Number(e.target.value)); setPage(1); }}
-                            >
-                                {[10, 20, 50, 100].map(opt => (
-                                    <option key={opt} value={opt}>{opt} / page</option>
-                                ))}
-                            </select>
-                        </div>
+                                            className="bg-green-600 text-white px-3 py-1 rounded"
+                                            onClick={() => handleBlockToggle(captain._id, false)}
+                                        >Unblock</button>
+                                    ) : (
+                                        <button
+                                            className="bg-red-600 text-white px-3 py-1 rounded"
+                                            onClick={() => handleBlockToggle(captain._id, true)}
+                                        >Block</button>
+                                    )}
+                                </td>
+                                <td className="py-2 px-4">
+                                    <button
+                                        className="bg-red-700 text-white px-3 py-1 rounded"
+                                        onClick={() => {
+                                            let confirmMsg = `Are you sure you want to delete this captain?\n\nName: ${captain.fullname?.firstname || ''} ${captain.fullname?.lastname || ''}\nEmail: ${captain.email}\nVehicle: ${captain.vehicle?.vehicleType || ''} (${captain.vehicle?.plate || ''})\nTotal Rides: ${captain.totalRides ?? 0}\nTotal Earnings: ₹${captain.totalEarnings ?? 0}`;
+                                            if (!window.confirm(confirmMsg)) return;
+                                            handleDelete(captain._id);
+                                        }}
+                                    >Delete</button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between mt-4">
+                    <div>
+                        <span className="text-sm text-gray-600">
+                            Page {page} of {totalPages} | Total Captains: {total}
+                        </span>
                     </div>
+                    <div className="flex gap-2">
+                        <button
+                            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page <= 1}
+                        >
+                            Prev
+                        </button>
+                        <button
+                            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            disabled={page >= totalPages}
+                        >
+                            Next
+                        </button>
+                        <select
+                            className="ml-2 border rounded px-2 py-1"
+                            value={limit}
+                            onChange={e => { setLimit(Number(e.target.value)); setPage(1); }}
+                        >
+                            {[10, 20, 50, 100].map(opt => (
+                                <option key={opt} value={opt}>{opt} / page</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
                 </>
             )}
         </div>
