@@ -146,7 +146,7 @@ const AdminRidesDashboard = () => {
                     </div>
 
                     {/* Table Section */}
-                    <div className="overflow-auto max-h-[35vh] rounded-lg border shadow-sm">
+                    <div className="overflow-auto max-h-[30vh] rounded-lg border shadow-sm">
                         <table className="w-full min-w-[800px] text-sm">
                             <thead className="sticky top-0 z-20 bg-gray-100 shadow">
                                 <tr>

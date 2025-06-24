@@ -76,86 +76,86 @@ const AdminCaptainDashboard = () => {
             {error && <div className="text-red-600">{error}</div>}
             {!loading && !error && (
                 <>
-                <table className="w-full border">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="py-2 px-4 text-left">Name</th>
-                            <th className="py-2 px-4 text-left">Email</th>
-                            <th className="py-2 px-4 text-left">Vehicle</th>
-                            <th className="py-2 px-4 text-left">Status</th>
-                            <th className="py-2 px-4 text-left">Action</th>
-                            <th className="py-2 px-4 text-left">Delete</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {captains.map(captain => (
-                            <tr key={captain._id} className="border-t">
-                                <td className="py-2 px-4">{captain.fullname?.firstname} {captain.fullname?.lastname}</td>
-                                <td className="py-2 px-4">{captain.email}</td>
-                                <td className="py-2 px-4">{captain.vehicle?.vehicleType} ({captain.vehicle?.plate})</td>
-                                <td className="py-2 px-4">
-                                    {captain.isBlocked ? (
-                                        <span className="text-red-600">Blocked</span>
-                                    ) : (
-                                        <span className="text-green-600">Active</span>
-                                    )}
-                                </td>
-                                <td className="py-2 px-4">
-                                    {captain.isBlocked ? (
-                                        <button
-                                            className="bg-green-600 text-white px-3 py-1 rounded"
-                                            onClick={() => handleBlockToggle(captain._id, false)}
-                                        >Unblock</button>
-                                    ) : (
-                                        <button
-                                            className="bg-red-600 text-white px-3 py-1 rounded"
-                                            onClick={() => handleBlockToggle(captain._id, true)}
-                                        >Block</button>
-                                    )}
-                                </td>
-                                <td className="py-2 px-4">
-                                    <button
-                                        className="bg-red-700 text-white px-3 py-1 rounded"
-                                        onClick={() => handleDelete(captain._id)}
-                                    >Delete</button>
-                                </td>
+                    <table className="w-full border">
+                        <thead>
+                            <tr className="bg-gray-100">
+                                <th className="py-2 px-4 text-left">Name</th>
+                                <th className="py-2 px-4 text-left">Email</th>
+                                <th className="py-2 px-4 text-left">Vehicle</th>
+                                <th className="py-2 px-4 text-left">Status</th>
+                                <th className="py-2 px-4 text-left">Action</th>
+                                <th className="py-2 px-4 text-left">Delete</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {/* Pagination Controls */}
-                <div className="flex items-center justify-between mt-4">
-                    <div>
-                        <span className="text-sm text-gray-600">
-                            Page {page} of {totalPages} | Total Captains: {total}
-                        </span>
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
-                            disabled={page <= 1}
-                        >
-                            Prev
-                        </button>
-                        <button
-                            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
-                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                            disabled={page >= totalPages}
-                        >
-                            Next
-                        </button>
-                        <select
-                            className="ml-2 border rounded px-2 py-1"
-                            value={limit}
-                            onChange={e => { setLimit(Number(e.target.value)); setPage(1); }}
-                        >
-                            {[10, 20, 50, 100].map(opt => (
-                                <option key={opt} value={opt}>{opt} / page</option>
+                        </thead>
+                        <tbody>
+                            {captains.map(captain => (
+                                <tr key={captain._id} className="border-t">
+                                    <td className="py-2 px-4">{captain.fullname?.firstname} {captain.fullname?.lastname}</td>
+                                    <td className="py-2 px-4">{captain.email}</td>
+                                    <td className="py-2 px-4">{captain.vehicle?.vehicleType} ({captain.vehicle?.plate})</td>
+                                    <td className="py-2 px-4">
+                                        {captain.isBlocked ? (
+                                            <span className="text-red-600">Blocked</span>
+                                        ) : (
+                                            <span className="text-green-600">Active</span>
+                                        )}
+                                    </td>
+                                    <td className="py-2 px-4">
+                                        {captain.isBlocked ? (
+                                            <button
+                                                className="bg-green-600 text-white px-3 py-1 rounded"
+                                                onClick={() => handleBlockToggle(captain._id, false)}
+                                            >Unblock</button>
+                                        ) : (
+                                            <button
+                                                className="bg-red-600 text-white px-3 py-1 rounded"
+                                                onClick={() => handleBlockToggle(captain._id, true)}
+                                            >Block</button>
+                                        )}
+                                    </td>
+                                    <td className="py-2 px-4">
+                                        <button
+                                            className="bg-red-700 text-white px-3 py-1 rounded"
+                                            onClick={() => handleDelete(captain._id)}
+                                        >Delete</button>
+                                    </td>
+                                </tr>
                             ))}
-                        </select>
+                        </tbody>
+                    </table>
+                    {/* Pagination Controls */}
+                    <div className="flex items-center justify-between mt-4">
+                        <div>
+                            <span className="text-sm text-gray-600">
+                                Page {page} of {totalPages} | Total Captains: {total}
+                            </span>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page <= 1}
+                            >
+                                Prev
+                            </button>
+                            <button
+                                className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page >= totalPages}
+                            >
+                                Next
+                            </button>
+                            <select
+                                className="ml-2 border rounded px-2 py-1"
+                                value={limit}
+                                onChange={e => { setLimit(Number(e.target.value)); setPage(1); }}
+                            >
+                                {[10, 20, 50, 100].map(opt => (
+                                    <option key={opt} value={opt}>{opt} / page</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
-                </div>
                 </>
             )}
         </div>

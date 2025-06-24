@@ -6,24 +6,41 @@ const AdminUserDashboard = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [refresh, setRefresh] = useState(false)
+    const [page, setPage] = useState(1)
+    const [limit, setLimit] = useState(10)
+    const [totalPages, setTotalPages] = useState(1)
+    const [total, setTotal] = useState(0)
 
     useEffect(() => {
         setLoading(true)
         setError('')
         axios.get(`${import.meta.env.VITE_BASE_URL}/api/admin/users`, {
+            params: {
+                page,
+                limit
+            },
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('adminToken')}`
             }
         })
             .then(res => {
-                setUsers(res.data || [])
+                // Support both old and paginated response
+                if (Array.isArray(res.data)) {
+                    setUsers(res.data || [])
+                    setTotal(res.data.length)
+                    setTotalPages(1)
+                } else {
+                    setUsers(res.data.users || res.data.data || [])
+                    setTotal(res.data.total || 0)
+                    setTotalPages(res.data.totalPages || 1)
+                }
                 setLoading(false)
             })
             .catch(() => {
                 setError('Failed to fetch users')
                 setLoading(false)
             })
-    }, [refresh])
+    }, [refresh, page, limit])
 
     const handleBlockToggle = async (userId, block) => {
         try {
@@ -58,6 +75,7 @@ const AdminUserDashboard = () => {
             {loading && <div>Loading...</div>}
             {error && <div className="text-red-600">{error}</div>}
             {!loading && !error && (
+                <>
                 <table className="w-full border">
                     <thead>
                         <tr className="bg-gray-100">
@@ -103,6 +121,40 @@ const AdminUserDashboard = () => {
                         ))}
                     </tbody>
                 </table>
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between mt-4">
+                    <div>
+                        <span className="text-sm text-gray-600">
+                            Page {page} of {totalPages} | Total Users: {total}
+                        </span>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page <= 1}
+                        >
+                            Prev
+                        </button>
+                        <button
+                            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            disabled={page >= totalPages}
+                        >
+                            Next
+                        </button>
+                        <select
+                            className="ml-2 border rounded px-2 py-1"
+                            value={limit}
+                            onChange={e => { setLimit(Number(e.target.value)); setPage(1); }}
+                        >
+                            {[10, 20, 50, 100].map(opt => (
+                                <option key={opt} value={opt}>{opt} / page</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+                </>
             )}
         </div>
     )
