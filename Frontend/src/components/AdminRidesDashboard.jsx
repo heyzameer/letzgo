@@ -14,24 +14,41 @@ const AdminRidesDashboard = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [selectedDate, setSelectedDate] = useState('') // format: yyyy-mm-dd
+    const [page, setPage] = useState(1)
+    const [limit, setLimit] = useState(10)
+    const [totalPages, setTotalPages] = useState(1)
+    const [total, setTotal] = useState(0)
 
     useEffect(() => {
         setLoading(true)
         setError('')
         axios.get(`${import.meta.env.VITE_BASE_URL}/api/admin/rides`, {
+            params: {
+                page,
+                limit
+            },
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('adminToken')}`
             }
         })
             .then(res => {
-                setRides(res.data || [])
+                // Support both old and paginated response
+                if (Array.isArray(res.data)) {
+                    setRides(res.data || [])
+                    setTotal(res.data.length)
+                    setTotalPages(1)
+                } else {
+                    setRides(res.data.rides || [])
+                    setTotal(res.data.total || 0)
+                    setTotalPages(res.data.totalPages || 1)
+                }
                 setLoading(false)
             })
             .catch(() => {
                 setError('Failed to fetch rides')
                 setLoading(false)
             })
-    }, [])
+    }, [page, limit])
 
     // Filter rides by selected date (if any)
     const filteredRides = selectedDate
@@ -172,10 +189,43 @@ const AdminRidesDashboard = () => {
                                 ))}
                             </tbody>
                         </table>
-
                         {filteredRides.length === 0 && (
                             <div className="text-center text-gray-500 py-10">No rides found.</div>
                         )}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    <div className="flex items-center justify-between mt-4">
+                        <div>
+                            <span className="text-sm text-gray-600">
+                                Page {page} of {totalPages} | Total Rides: {total}
+                            </span>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page <= 1}
+                            >
+                                Prev
+                            </button>
+                            <button
+                                className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page >= totalPages}
+                            >
+                                Next
+                            </button>
+                            <select
+                                className="ml-2 border rounded px-2 py-1"
+                                value={limit}
+                                onChange={e => { setLimit(Number(e.target.value)); setPage(1); }}
+                            >
+                                {[10, 20, 50, 100].map(opt => (
+                                    <option key={opt} value={opt}>{opt} / page</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </>
             )}
