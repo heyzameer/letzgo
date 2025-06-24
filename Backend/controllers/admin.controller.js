@@ -41,10 +41,28 @@ exports.getUsers = async (req, res) => {
     res.status(HTTP_STATUS.OK).json(users);
 };
 
-// Get all captains
+// Get all captains with pagination
 exports.getCaptains = async (req, res) => {
-    const captains = await captainModel.find();
-    res.status(HTTP_STATUS.OK).json(captains);
+    const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
+    const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 10;
+    const skip = (page - 1) * limit;
+
+    try {
+        const total = await captainModel.countDocuments();
+        const captains = await captainModel.find()
+            .skip(skip)
+            .limit(limit);
+
+        res.status(200).json({
+            captains,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch captains' });
+    }
 };
 
 // Get all rides with pagination
