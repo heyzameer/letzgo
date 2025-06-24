@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState,useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { CaptainDataContext } from '../context/CaptainContext'
 import { useNavigate } from 'react-router-dom'
@@ -24,6 +24,9 @@ const CaptainSignup = () => {
   const [errors, setErrors] = useState({});
   const [step, setStep] = useState(1);
   const [otp, setOtp] = useState('');
+    const [timer, setTimer] = useState(60)
+    const timerRef = useRef(null)
+    const [message, setMessage] = useState('')
 
   const { captain, setCaptain } = React.useContext(CaptainDataContext)
 
@@ -48,17 +51,23 @@ const CaptainSignup = () => {
     return newErrors;
   };
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
 
-    const validationErrors = validateForm();
-    setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) {
-      setError("Please fix the errors below.");
-      return;
-    }
+   const startTimer = () => {
+    setTimer(60)
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setTimer(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
 
-    const captainData = {
+
+  const captainData = {
       fullname: {
         firstname: firstName,
         lastname: lastName
@@ -73,6 +82,19 @@ const CaptainSignup = () => {
       }
     };
 
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+
+    const validationErrors = validateForm();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      setError("Please fix the errors below.");
+      return;
+    }
+
+    
+
     try {
       // Step 1: Send registration request to get OTP
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/captains/register`, captainData);
@@ -80,6 +102,7 @@ const CaptainSignup = () => {
       if (response.status === 200) {
         setStep(2);
         setError('');
+        startTimer();
       }
     } catch (err) {
       if (err.response && err.response.status === 400) {
@@ -89,6 +112,19 @@ const CaptainSignup = () => {
       }
     }
   };
+
+   const handleResendOtp = async () => {
+      setError('')
+      setMessage('')
+      try {
+        // Use the same newUser object as registration
+        await axios.post(`${import.meta.env.VITE_BASE_URL}/api/captains/register`, captainData)
+        setMessage('OTP resent to your email.')
+        startTimer()
+      } catch (err) {
+        setError(err?.response?.data?.message || 'Failed to resend OTP.')
+      }
+    }
 
   // OTP verification handler
   const handleOtpVerify = async (e) => {
@@ -254,6 +290,22 @@ const CaptainSignup = () => {
               type="text"
               placeholder="Enter OTP"
             />
+              <div className="flex items-center mb-4">
+              <span className="text-xs text-gray-600">
+                {timer > 0
+                  ? `Resend OTP in ${timer}s`
+                  : (
+                    <button
+                      type="button"
+                      className="bg-black text-white p-2 rounded font-semibold"
+                      onClick={handleResendOtp}
+                    >
+                      Resend OTP
+                    </button>
+                  )
+                }
+              </span>
+            </div>
             <button
               className='bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
             >Verify OTP</button>

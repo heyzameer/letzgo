@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext,useRef} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { UserDataContext } from '../context/UserContext'
@@ -13,6 +13,9 @@ const UserSignup = () => {
   const [userData, setUserData] = useState({})
   const [step, setStep] = useState(1);
   const [otp, setOtp] = useState('');
+  const [timer, setTimer] = useState(60)
+  const timerRef = useRef(null)
+  const [message, setMessage] = useState('')
 
   const navigate = useNavigate()
 
@@ -34,6 +37,30 @@ const UserSignup = () => {
     return newErrors;
   };
 
+    const startTimer = () => {
+    setTimer(60)
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setTimer(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
+
+  // Move newUser outside submitHandler so it can be reused for resend
+  const newUser = {
+    fullName: {
+      firstName: firstName,
+      lastName: lastName
+    },
+    email: email,
+    password: password
+  };
+
   const submitHandler = async (e) => {
     e.preventDefault();
     setError('');
@@ -44,21 +71,13 @@ const UserSignup = () => {
       return;
     }
 
-    const newUser = {
-      fullName: {
-        firstName: firstName,
-        lastName: lastName
-      },
-      email: email,
-      password: password
-    };
-
     try {
       // Step 1: Send registration request to get OTP
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/register`, newUser);
       if (response.status === 200) {
         setStep(2);
         setError('');
+        startTimer();
       }
     } catch (err) {
       if (err.response && err.response.status === 400) {
@@ -70,6 +89,19 @@ const UserSignup = () => {
       }
     }
   };
+
+  const handleResendOtp = async () => {
+    setError('')
+    setMessage('')
+    try {
+      // Use the same newUser object as registration
+      await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/register`, newUser)
+      setMessage('OTP resent to your email.')
+      startTimer()
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to resend OTP.')
+    }
+  }
 
   // OTP verification handler
   const handleOtpVerify = async (e) => {
@@ -172,6 +204,7 @@ const UserSignup = () => {
           )}
 
           {step === 2 && (
+            <>
             <form onSubmit={handleOtpVerify}>
               <h3 className='text-lg font-medium mb-2'>Enter OTP sent to your email</h3>
               <input
@@ -182,10 +215,29 @@ const UserSignup = () => {
                 type="text"
                 placeholder="Enter OTP"
               />
+              <div className="flex items-center mb-4">
+              <span className="text-xs text-gray-600">
+                {timer > 0
+                  ? `Resend OTP in ${timer}s`
+                  : (
+                    <button
+                      type="button"
+                      className="bg-black text-white p-2 rounded font-semibold"
+                      onClick={handleResendOtp}
+                    >
+                      Resend OTP
+                    </button>
+                  )
+                }
+              </span>
+            </div>
               <button
                 className='bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
               >Verify OTP</button>
             </form>
+            
+            {message && <div className="text-green-600 text-center">{message}</div>}
+            </>
           )}
 
           <p className='text-center'>Already have a account? <Link to='/login' className='text-blue-600'>Login here</Link></p>
