@@ -198,7 +198,7 @@ const UserSignup = () => {
               {errors.password && <div className="text-red-600 text-xs mb-2">{errors.password}</div>}
 
               <button
-                className='bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
+                className='bg-[#111] cursor-pointer text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
               >Create account</button>
             </form>
           )}
@@ -232,7 +232,7 @@ const UserSignup = () => {
               </span>
             </div>
               <button
-                className='bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
+                className= 'cursor-pointer bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
               >Verify OTP</button>
             </form>
             
