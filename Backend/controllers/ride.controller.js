@@ -4,6 +4,7 @@ const { validationResult } = require('express-validator');
 const { sendMessageToSocketId } = require('../socket');
 const rideModel = require('../models/ride.model');
 const HTTP_STATUS = require('../constants/httpstatus');
+const MSG = require('../constants/commanMsgs'); // <-- Import commanMsgs
 
 module.exports.createRide = async (req, res) => {
     const errors = validationResult(req);
@@ -44,8 +45,7 @@ module.exports.createRide = async (req, res) => {
         })
     }
     catch (error) {
-        // console.error('Error creating ride:', error);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.INTERNAL_SERVER_ERROR });
     }
 }
 
@@ -61,7 +61,7 @@ module.exports.getFare = async (req, res) => {
         const fare = await rideService.getFare(pickup, destination);
         return res.status(HTTP_STATUS.OK).json(fare);
     } catch (err) {
-        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.INTERNAL_SERVER_ERROR });
     }
 }
 
@@ -72,8 +72,6 @@ module.exports.confirmRide = async (req, res) => {
     }
 
     const { rideId,ride } = req.body;
-    // console.log(ride);
-
     try {
         const ride = await rideService.confirmRide({
             rideId,
@@ -106,7 +104,7 @@ module.exports.confirmRide = async (req, res) => {
 
         return res.status(HTTP_STATUS.OK).json(ride);
     } catch (err) {
-        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.INTERNAL_SERVER_ERROR });
     }
 }
 
@@ -133,7 +131,7 @@ module.exports.startRide = async (req, res) => {
 
         return res.status(HTTP_STATUS.OK).json(ride);
     } catch (err) {
-        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.INTERNAL_SERVER_ERROR });
     }
 }
 
@@ -171,17 +169,16 @@ module.exports.endRide = async (req, res) => {
 
         return res.status(HTTP_STATUS.OK).json(ride);
     } catch (err) {
-        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.INTERNAL_SERVER_ERROR });
     }
 }
 
 module.exports.cancelRideByCaptain = async (req, res) => {
     const { rideId } = req.body;
     try {
-        // Find the ride and check if it exists and is accepted, and populate user to get socketId
         const ride = await rideModel.findOne({ _id: rideId, status: 'accepted' }).populate('user');
         if (!ride) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Ride not found or not in accepted state' });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.RIDE_NOT_FOUND_OR_NOT_ACCEPTED });
         }
 
         // Defensive: ensure user is populated and has socketId
@@ -201,21 +198,18 @@ module.exports.cancelRideByCaptain = async (req, res) => {
         // Optionally, update ride status to cancelled
         await rideModel.findByIdAndUpdate(rideId, { status: rideModel.StatusEnum.CANCELLED });
 
-        return res.status(HTTP_STATUS.OK).json({ message: 'Ride cancelled by captain and user notified.' });
+        return res.status(HTTP_STATUS.OK).json({ message: MSG.RIDE_CANCELLED_BY_CAPTAIN });
     } catch (err) {
-        // console.error('Error in cancelRideByCaptain:', err);
-        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.INTERNAL_SERVER_ERROR });
     }
 }
 
 module.exports.cancelRideByUser = async (req, res) => {
     const { rideId } = req.body;
-    // console.log('Received request to cancel ride by user:', rideId);
     try {
-        // Find the ride and check if it exists and is pending or accepted, and populate captain to get socketId
         const ride = await rideModel.findOne({ _id: rideId, status: { $in: ['pending', 'accepted'] } }).populate('captain');
         if (!ride) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Ride not found or not in cancellable state' });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.RIDE_NOT_FOUND_OR_NOT_CANCELLABLE });
         }
 
         // Defensive: ensure captain is populated and has socketId
@@ -232,10 +226,9 @@ module.exports.cancelRideByUser = async (req, res) => {
         // Optionally, update ride status to cancelled
         await rideModel.findByIdAndUpdate(rideId, { status: rideModel.StatusEnum.CANCELLED });
 
-        return res.status(HTTP_STATUS.OK).json({ message: 'Ride cancelled by user and captain notified.' });
+        return res.status(HTTP_STATUS.OK).json({ message: MSG.RIDE_CANCELLED_BY_USER });
     } catch (err) {
-        // console.error('Error in cancelRideByUser:', err);
-        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.INTERNAL_SERVER_ERROR });
     }
 }
 
@@ -255,7 +248,7 @@ module.exports.getUserRideHistory = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-        res.status(200).json({
+        res.status(HTTP_STATUS.OK).json({
             rides,
             total,
             page,
@@ -263,7 +256,7 @@ module.exports.getUserRideHistory = async (req, res) => {
             totalPages: Math.ceil(total / limit)
         });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch user ride history', error: err.message });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.FAILED_TO_FETCH_USER_RIDE_HISTORY, error: err.message });
     }
 }
 
@@ -282,7 +275,7 @@ module.exports.getCaptainRideHistory = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-        res.status(200).json({
+        res.status(HTTP_STATUS.OK).json({
             rides,
             total,
             page,
@@ -290,6 +283,6 @@ module.exports.getCaptainRideHistory = async (req, res) => {
             totalPages: Math.ceil(total / limit)
         });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch captain ride history', error: err.message });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.FAILED_TO_FETCH_CAPTAIN_RIDE_HISTORY, error: err.message });
     }
 }

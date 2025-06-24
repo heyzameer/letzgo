@@ -3,6 +3,8 @@ const userService = require('../services/user.service');
 const { validationResult } = require('express-validator');
 const blacklistTokenModel = require('../models/blacklistToken.model');
 const nodemailer = require('nodemailer');
+const HTTP_STATUS = require('../constants/httpstatus');
+const MSG = require('../constants/commanMsgs'); // <-- Import commanMsgs
 
 // In-memory OTP store (for demo; use DB or cache in production)
 const otpStore = {};
@@ -10,7 +12,7 @@ const otpStore = {};
 module.exports.registerUser = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
+        return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({ errors: errors.array() });
     }
     try {
         const {
@@ -21,7 +23,7 @@ module.exports.registerUser = async (req, res, next) => {
 
         const isUserAlreadyExist = await userModel.findOne({ email });
         if (isUserAlreadyExist) {
-            return res.status(400).json({ message: 'User already exists' });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.USER_ALREADY_EXISTS });
         }
         // Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -43,7 +45,7 @@ module.exports.registerUser = async (req, res, next) => {
             text: `Your OTP for registration is: ${otp}`
         });
 
-        return res.status(200).json({ message: 'OTP sent to your email for verification.' });
+        return res.status(HTTP_STATUS.OK).json({ message: MSG.OTP_SENT });
     } catch (error) {
         next(error);
     }
@@ -54,7 +56,7 @@ module.exports.verifyUserOtp = async (req, res) => {
     const { email, otp } = req.body;
     const record = otpStore[email];
     if (!record || record.otp !== otp || Date.now() > record.expires) {
-        return res.status(400).json({ message: 'Invalid or expired OTP.' });
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.OTP_INVALID });
     }
     // Proceed with registration
     const { firstName, lastName, email: userEmail, password } = record.userData;
@@ -65,31 +67,31 @@ module.exports.verifyUserOtp = async (req, res) => {
     // Remove OTP after use
     delete otpStore[email];
 
-    return res.status(201).json({ message: 'User created successfully', user, token });
+    return res.status(HTTP_STATUS.CREATED).json({ message: MSG.USER_CREATED, user, token });
 }
 
 module.exports.loginUser = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ errors: errors.array() });
     }
     try {
         const { email, password } = req.body;
         const user = await userModel.findOne({ email }).select('+password');
         if (!user) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MSG.INVALID_EMAIL_OR_PASSWORD });
         }
         if (user.isBlocked) {
-                return res.status(403).json({ message: 'Your account has been blocked. Please contact support.' });
-            }
+            return res.status(HTTP_STATUS.FORBIDDEN).json({ message: MSG.USER_BLOCKED });
+        }
         // Check if password is correct
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MSG.INVALID_EMAIL_OR_PASSWORD });
         }
         const token = await user.generateAuthToken();
         res.cookie('token', token);
-        return res.status(200).json({ message: 'Login successful', user, token });
+        return res.status(HTTP_STATUS.OK).json({ message: MSG.LOGIN_SUCCESS, user, token });
     }
     catch (error) {
         next(error);
@@ -105,29 +107,24 @@ module.exports.getUserProfile = async (req, res, next) => {
             .findById(req.user._id)
             .select('+password');
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.USER_NOT_FOUND });
         }
-        // Return password as plain text (not recommended for production)
-        // WARNING: This is not possible if you only store hashed passwords.
-        // You cannot retrieve the original password from the hash.
-        // Instead, you can return a placeholder or an empty string.
-        return res.status(200).json({ 
+        return res.status(HTTP_STATUS.OK).json({ 
             user: {
                 ...user.toObject(),
-                password: '' // Cannot show real password, only possible to reset
+                password: ''
             }
         });
     }
-    res.status(200).json({ user: req.user });
+    res.status(HTTP_STATUS.OK).json({ user: req.user });
 }
 
 module.exports.logoutUser = async (req, res, next) => {
     try {
         const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-        // await userService.blacklistToken(token);
         await blacklistTokenModel.create({ token });
         res.clearCookie('token');
-        return res.status(200).json({ message: 'Logout successful' });
+        return res.status(HTTP_STATUS.OK).json({ message: MSG.LOGOUT_SUCCESS });
     } catch (error) {
         next(error);
     }
@@ -142,11 +139,10 @@ module.exports.updateUserProfile = async (req, res, next) => {
     }
     if (email) updates.email = email;
 
-    // Only check for existing user if the email is different from the current user's email
     if (email && email !== req.user.email) {
         const isUserAlreadyExist = await userModel.findOne({ email });
         if (isUserAlreadyExist) {
-            return res.status(400).json({ message: 'Email already exists' });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.EMAIL_ALREADY_EXISTS });
         }
     }
 
@@ -156,9 +152,9 @@ module.exports.updateUserProfile = async (req, res, next) => {
             { $set: updates },
             { new: true }
         );
-        res.status(200).json({ user });
+        res.status(HTTP_STATUS.OK).json({ user });
     } catch (error) {
-        res.status(500).json({ message: 'Failed to update profile.' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.FAILED_TO_UPDATE_PROFILE });
     }
 }
 
@@ -166,18 +162,14 @@ module.exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
     const user = await userModel.findOne({ email });
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.USER_NOT_FOUND });
     }
 
-    // console.log('Sending OTP to:', email);
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Save OTP in memory (for demo; use DB or cache for production)
-    otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 }; // 10 min expiry
+    otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 };
 
-    // console.log('Generated OTP:', otp);
-    // Send OTP via email using nodemailer
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -193,27 +185,26 @@ module.exports.forgotPassword = async (req, res) => {
         text: `Your OTP for password reset is: ${otp}`
     });
 
-    res.status(200).json({ message: 'OTP sent to your email.' });
+    res.status(HTTP_STATUS.OK).json({ message: MSG.OTP_SENT });
 };
 
 module.exports.resetPassword = async (req, res) => {
     const { email, otp, newPassword } = req.body;
     const record = otpStore[email];
     if (!record || record.otp !== otp || Date.now() > record.expires) {
-        return res.status(400).json({ message: 'Invalid or expired OTP.' });
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.OTP_INVALID });
     }
 
     const user = await userModel.findOne({ email });
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.USER_NOT_FOUND });
     }
 
     const hashedPassword = await userModel.hashPassword(newPassword);
     user.password = hashedPassword;
     await user.save();
 
-    // Remove OTP after use
     delete otpStore[email];
 
-    res.status(200).json({ message: 'Password updated successfully.' });
+    res.status(HTTP_STATUS.OK).json({ message: MSG.PASSWORD_UPDATED });
 };

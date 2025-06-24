@@ -1,51 +1,50 @@
 const mapsService = require('../services/maps.service');
 const { validationResult } = require('express-validator');
+const HTTP_STATUS = require('../constants/httpstatus');
+const MSG = require('../constants/commanMsgs'); // Import commanMsgs
 
 module.exports.getCoordinate = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
+        return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({ errors: errors.array() });
     }
 
     const { address } = req.query;
 
     try {
         const coordinates = await mapsService.getAdressCoordinates(address);
-        res.status(200).json(coordinates);
+        res.status(HTTP_STATUS.OK).json(coordinates);
     } catch (error) {
-        // console.error('Error fetching coordinates:', error);
-        res.status(404).json({ message: 'Coordinates not found' });
+        res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.COORDINATES_NOT_FOUND });
     }
-    };
+};
 
 module.exports.getDistanceAndTime = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
+        return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({ errors: errors.array() });
     }
     const { origin, destination } = req.query;
     try {
         const distanceAndTime = await mapsService.getDistanceAndTime(origin, destination);
-        res.status(200).json(distanceAndTime);
+        res.status(HTTP_STATUS.OK).json(distanceAndTime);
     } catch (error) {
-        // console.error('Error fetching distance and time:', error);
-        res.status(404).json({ message: 'Distance and time not found' });
-        }
+        res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.DISTANCE_TIME_NOT_FOUND });
     }
+};
 
 module.exports.getAutoCompleteSuggestions = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
+        return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({ errors: errors.array() });
     }
 
     const { input } = req.query;
 
     try {
         const suggestions = await mapsService.getAutoCompleteSuggestions(input);
-        res.status(200).json(suggestions);
+        res.status(HTTP_STATUS.OK).json(suggestions);
     } catch (error) {
-        // console.error('Error fetching suggestions:', error);
-        res.status(404).json({ message: 'Suggestions not found' });
+        res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.SUGGESTIONS_NOT_FOUND });
     }
-}
+};

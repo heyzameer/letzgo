@@ -1,22 +1,12 @@
 const blacklistTokenModel = require('../models/blacklistToken.model');
 const captainModel = require('../models/captain.model');
-
 const captainService = require('../services/captain.service');
 const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
+const HTTP_STATUS = require('../constants/httpstatus');
+const MSG = require('../constants/commanMsgs'); // <-- Import commanMsgs
 
 const otpStore = {}; // In-memory OTP store for demo
-const HTTP_STATUS = require('../constants/httpstatus');
-
-// Common messages
-const MSG_CAPTAIN_ALREADY_EXIST = 'Captain already exist';
-const MSG_CAPTAIN_NOT_FOUND = 'Captain not found';
-const MSG_OTP_SENT = 'OTP sent to your email for verification.';
-const MSG_OTP_INVALID = 'Invalid or expired OTP.';
-const MSG_LOGIN_SUCCESS = 'Login successful';
-const MSG_LOGOUT_SUCCESS = 'Logout successful';
-const MSG_PROFILE_UPDATED = 'Profile updated successfully!';
-const MSG_PASSWORD_UPDATED = 'Password updated successfully.';
 
 module.exports.registerCaptain = async (req, res, next) => {
     const errors = validationResult(req);
@@ -29,7 +19,7 @@ module.exports.registerCaptain = async (req, res, next) => {
     const isCaptainAlreadyExist = await captainModel.findOne({ email });
 
     if (isCaptainAlreadyExist) {
-        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG_CAPTAIN_ALREADY_EXIST });
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.CAPTAIN_ALREADY_EXIST });
     }
 
     // Generate OTP
@@ -57,7 +47,7 @@ module.exports.registerCaptain = async (req, res, next) => {
     });
     console.log(`OTP sent to ${email}: ${otp}`);
 
-    return res.status(HTTP_STATUS.OK).json({ message: MSG_OTP_SENT });
+    return res.status(HTTP_STATUS.OK).json({ message: MSG.OTP_SENT });
 }
 
 // New: OTP verification endpoint for captain registration
@@ -65,7 +55,7 @@ module.exports.verifyCaptainOtp = async (req, res) => {
     const { email, otp } = req.body;
     const record = otpStore[email];
     if (!record || record.otp !== otp || Date.now() > record.expires) {
-        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG_OTP_INVALID });
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.OTP_INVALID });
     }
     // Proceed with registration
     const { fullname, email: captainEmail, password, vehicle } = record.captainData;
@@ -85,7 +75,7 @@ module.exports.verifyCaptainOtp = async (req, res) => {
     // Remove OTP after use
     delete otpStore[email];
 
-    return res.status(HTTP_STATUS.CREATED).json({ message: 'Captain created successfully', captain, token });
+    return res.status(HTTP_STATUS.CREATED).json({ message: MSG.CAPTAIN_CREATED, captain, token });
 }
 
 module.exports.loginCaptain = async (req, res, next) => {
@@ -99,25 +89,25 @@ module.exports.loginCaptain = async (req, res, next) => {
     const captain = await captainModel.findOne({ email }).select('+password');
 
     if (!captain) {
-        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MSG_CAPTAIN_NOT_FOUND });
+        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MSG.CAPTAIN_NOT_FOUND });
     }
 
     if (captain.isBlocked) {
-        return res.status(HTTP_STATUS.FORBIDDEN).json({ message: 'Your profile may not be verified or has been blocked. Please contact support.' });
+        return res.status(HTTP_STATUS.FORBIDDEN).json({ message: MSG.CAPTAIN_BLOCKED });
     }
 
     // Check if password is correct
     const isMatch = await captain.comparePassword(password);
 
     if (!isMatch) {
-        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Invalid email or password' });
+        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MSG.INVALID_EMAIL_OR_PASSWORD });
     }
 
     const token = captain.generateAuthToken();
 
     res.cookie('token', token);
 
-    return res.status(HTTP_STATUS.OK).json({ message: MSG_LOGIN_SUCCESS, captain, token });
+    return res.status(HTTP_STATUS.OK).json({ message: MSG.LOGIN_SUCCESS, captain, token });
 
 }
 
@@ -145,7 +135,7 @@ module.exports.updateCaptainProfile = async (req, res, next) => {
     if (email && email !== req.captain.email) {
         const isCaptainAlreadyExist = await captainModel.findOne({ email });
         if (isCaptainAlreadyExist) {
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG_CAPTAIN_ALREADY_EXIST });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.CAPTAIN_ALREADY_EXIST });
         }
     }
 
@@ -157,9 +147,9 @@ module.exports.updateCaptainProfile = async (req, res, next) => {
         );
         // Always include password as empty string for frontend compatibility
         const captainObj = captain.toObject ? captain.toObject() : captain;
-        res.status(HTTP_STATUS.OK).json({ captain: { ...captainObj, password: '' }, message: MSG_PROFILE_UPDATED });
+        res.status(HTTP_STATUS.OK).json({ captain: { ...captainObj, password: '' }, message: MSG.PROFILE_UPDATED });
     } catch (error) {
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Failed to update profile.' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.FAILED_TO_UPDATE_PROFILE });
     }
 }
 
@@ -168,7 +158,7 @@ module.exports.logoutCaptain = async (req, res, next) => {
         const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
         await blacklistTokenModel.create({ token });
         res.clearCookie('token');
-        return res.status(HTTP_STATUS.OK).json({ message: MSG_LOGOUT_SUCCESS });
+        return res.status(HTTP_STATUS.OK).json({ message: MSG.LOGOUT_SUCCESS });
     } catch (error) {
         next(error);
     }
@@ -178,12 +168,10 @@ module.exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
     const captain = await captainModel.findOne({ email });
     if (!captain) {
-        return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG_CAPTAIN_NOT_FOUND });
+        return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.CAPTAIN_NOT_FOUND });
     }
-    console.log("Sending OTP to:", email);
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log("Generated OTP:", otp);
     // Save OTP in memory (for demo; use DB or cache in production)
     otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 }; // 10 min expiry
 
@@ -203,19 +191,19 @@ module.exports.forgotPassword = async (req, res) => {
         text: `Your OTP for password reset is: ${otp}`
     });
 
-    res.status(HTTP_STATUS.OK).json({ message: MSG_OTP_SENT });
+    res.status(HTTP_STATUS.OK).json({ message: MSG.OTP_SENT });
 };
 
 module.exports.resetPassword = async (req, res) => {
     const { email, otp, newPassword } = req.body;
     const record = otpStore[email];
     if (!record || record.otp !== otp || Date.now() > record.expires) {
-        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG_OTP_INVALID });
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.OTP_INVALID });
     }
 
     const captain = await captainModel.findOne({ email });
     if (!captain) {
-        return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG_CAPTAIN_NOT_FOUND });
+        return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.CAPTAIN_NOT_FOUND });
     }
 
     const hashedPassword = await captainModel.hashPassword(newPassword);
@@ -225,5 +213,5 @@ module.exports.resetPassword = async (req, res) => {
     // Remove OTP after use
     delete otpStore[email];
 
-    res.status(HTTP_STATUS.OK).json({ message: MSG_PASSWORD_UPDATED });
+    res.status(HTTP_STATUS.OK).json({ message: MSG.PASSWORD_UPDATED });
 };

@@ -81,7 +81,7 @@ const UserRideHistoryPanel = ({ open, setOpen }) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         <div className="bg-blue-100 text-blue-800 rounded-lg p-6 shadow-sm text-center">
-                            <div className="text-3xl font-bold">{totalRides}</div>
+                            <div className="text-3xl font-bold">{total}</div>
                             <div className="text-sm mt-1">Total Rides</div>
                         </div>
                         {/* <div className="bg-green-100 text-green-800 rounded-lg p-6 shadow-sm text-center">

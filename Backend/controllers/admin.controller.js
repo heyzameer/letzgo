@@ -6,6 +6,7 @@ const blacklistTokenModel = require('../models/blacklistToken.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const HTTP_STATUS = require('../constants/httpstatus');
+const MSG = require('../constants/commanMsgs'); // <-- Import commanMsgs
 
 
 // Admin login
@@ -13,14 +14,14 @@ exports.loginAdmin = async (req, res) => {
     const { email, password } = req.body;
     const admin = await adminModel.findOne({ email }).select('+password');
     if (!admin) {
-        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Invalid email or password' });
+        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MSG.INVALID_EMAIL_OR_PASSWORD });
     }
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
-        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Invalid email or password' });
+        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MSG.INVALID_EMAIL_OR_PASSWORD });
     }
     const token = jwt.sign({ _id: admin._id, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    res.status(HTTP_STATUS.OK).json({ message: 'Login successful', admin, token });
+    res.status(HTTP_STATUS.OK).json({ message: MSG.LOGIN_SUCCESS, admin, token });
 };
 
 // Admin logout
@@ -29,9 +30,9 @@ exports.logoutAdmin = async (req, res) => {
         const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
         await blacklistTokenModel.create({ token });
         res.clearCookie('token');
-        return res.status(HTTP_STATUS.OK).json({ message: 'Logout successful' });
+        return res.status(HTTP_STATUS.OK).json({ message: MSG.LOGOUT_SUCCESS });
     } catch (error) {
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Logout failed' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.LOGOUT_FAILED });
     }
 };
 
@@ -47,7 +48,7 @@ exports.getUsers = async (req, res) => {
             .skip(skip)
             .limit(limit);
 
-        res.status(200).json({
+        res.status(HTTP_STATUS.OK).json({
             users,
             total,
             page,
@@ -55,7 +56,7 @@ exports.getUsers = async (req, res) => {
             totalPages: Math.ceil(total / limit)
         });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch users' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.FAILED_TO_FETCH_USERS });
     }
 };
 
@@ -71,7 +72,7 @@ exports.getCaptains = async (req, res) => {
             .skip(skip)
             .limit(limit);
 
-        res.status(200).json({
+        res.status(HTTP_STATUS.OK).json({
             captains,
             total,
             page,
@@ -79,7 +80,7 @@ exports.getCaptains = async (req, res) => {
             totalPages: Math.ceil(total / limit)
         });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch captains' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.FAILED_TO_FETCH_CAPTAINS });
     }
 };
 
@@ -99,7 +100,7 @@ exports.getRides = async (req, res) => {
             .skip(skip)
             .limit(limit);
 
-        res.status(200).json({
+        res.status(HTTP_STATUS.OK).json({
             rides,
             total,
             page,
@@ -107,7 +108,7 @@ exports.getRides = async (req, res) => {
             totalPages: Math.ceil(total / limit)
         });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch rides' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.FAILED_TO_FETCH_RIDES });
     }
 };
 
@@ -115,42 +116,41 @@ exports.getRides = async (req, res) => {
 exports.blockUser = async (req, res) => {
     const { userId } = req.body;
     await userModel.findByIdAndUpdate(userId, { isBlocked: true });
-    res.status(HTTP_STATUS.OK).json({ message: 'User blocked' });
+    res.status(HTTP_STATUS.OK).json({ message: MSG.USER_BLOCKED });
 };
 
 // Unblock user
 exports.unblockUser = async (req, res) => {
     const { userId } = req.body;
     await userModel.findByIdAndUpdate(userId, { isBlocked: false });
-    res.status(HTTP_STATUS.OK).json({ message: 'User unblocked' });
+    res.status(HTTP_STATUS.OK).json({ message: MSG.USER_UNBLOCKED });
 };
 
 // Block captain
 exports.blockCaptain = async (req, res) => {
     const { captainId } = req.body;
     await captainModel.findByIdAndUpdate(captainId, { isBlocked: true });
-    const rideCount = await rideModel.countDocuments({captain:captainId, status: 'completed'});
-    const rideCancled = await rideModel.countDocuments({captain:captainId, status: 'cancled'});
-    if(rideCount<5 & rideCancled== 0){
-       res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'Captain cannot be blocked as they have completed less 3 rides ' });
+    const rideCount = await rideModel.countDocuments({ captain: captainId, status: 'completed' });
+    const rideCancled = await rideModel.countDocuments({ captain: captainId, status: 'cancled' });
+    if (rideCount < 5 && rideCancled == 0) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.CAPTAIN_BLOCK_CONDITION });
     }
-    res.status(HTTP_STATUS.OK).json({ message: 'Captain blocked' });
+    res.status(HTTP_STATUS.OK).json({ message: MSG.CAPTAIN_BLOCKED });
 };
 
 // Unblock captain
 exports.unblockCaptain = async (req, res) => {
     const { captainId } = req.body;
     await captainModel.findByIdAndUpdate(captainId, { isBlocked: false });
-    res.status(HTTP_STATUS.OK).json({ message: 'Captain unblocked' });
+    res.status(HTTP_STATUS.OK).json({ message: MSG.CAPTAIN_UNBLOCKED });
 };
-
 
 // Create a new admin
 exports.createAdmin = async (req, res) => {
     const { email, password } = req.body;
     const existingAdmin = await adminModel.findOne({ email });
     if (existingAdmin) {
-        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'Admin with this email already exists' });
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.ADMIN_ALREADY_EXISTS });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newAdmin = new adminModel({
@@ -158,7 +158,7 @@ exports.createAdmin = async (req, res) => {
         password: hashedPassword
     });
     await newAdmin.save();
-    res.status(HTTP_STATUS.CREATED).json({ message: 'Admin created successfully', admin: newAdmin });
+    res.status(HTTP_STATUS.CREATED).json({ message: MSG.ADMIN_CREATED, admin: newAdmin });
 }
 
 // Delete user
@@ -167,11 +167,11 @@ exports.deleteUser = async (req, res) => {
     try {
         const user = await userModel.findByIdAndDelete(userId);
         if (!user) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'User not found' });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.USER_NOT_FOUND });
         }
-        res.status(HTTP_STATUS.OK).json({ message: 'User deleted successfully' });
+        res.status(HTTP_STATUS.OK).json({ message: MSG.USER_DELETED });
     } catch (err) {
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Failed to delete user' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.FAILED_TO_DELETE_USER });
     }
 };
 
@@ -181,10 +181,10 @@ exports.deleteCaptain = async (req, res) => {
     try {
         const captain = await captainModel.findByIdAndDelete(captainId);
         if (!captain) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Captain not found' });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: MSG.CAPTAIN_NOT_FOUND });
         }
-        res.status(HTTP_STATUS.OK).json({ message: 'Captain deleted successfully' });
+        res.status(HTTP_STATUS.OK).json({ message: MSG.CAPTAIN_DELETED });
     } catch (err) {
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Failed to delete captain' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.FAILED_TO_DELETE_CAPTAIN });
     }
 };
