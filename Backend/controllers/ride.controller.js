@@ -252,15 +252,29 @@ module.exports.getUserRideHistory = async (req, res) => {
     }
 }
 
-// Controller for captain ride history
+// Controller for captain ride history with pagination
 module.exports.getCaptainRideHistory = async (req, res) => {
+    // Pagination params
+    const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
+    const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 10;
+    const skip = (page - 1) * limit;
+
     try {
+        const total = await require('../models/ride.model').countDocuments({ captain: req.captain._id });
         const rides = await require('../models/ride.model')
             .find({ captain: req.captain._id })
             .populate('user')
-            .sort({ createdAt: -1 });
-        res.status(HTTP_STATUS.OK).json(rides);
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+        res.status(200).json({
+            rides,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (err) {
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Failed to fetch captain ride history', error: err.message });
+        res.status(500).json({ message: 'Failed to fetch captain ride history', error: err.message });
     }
 }
