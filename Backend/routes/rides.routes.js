@@ -147,19 +147,11 @@ router.get('/current-coordinates-user',
     }
 );
 
-// Get ride history for a user
+// Get ride history for a user (with pagination)
 router.get('/user/history',
     authMiddleware.authRole('user'),
     async (req, res) => {
-        try {
-            const rideModel = require('../models/ride.model');
-            const rides = await rideModel.find({ user: req.user._id })
-                .populate('captain')
-                .sort({ createdAt: -1 });
-            res.status(200).json(rides);
-        } catch (err) {
-            res.status(500).json({ message: 'Failed to fetch user ride history', error: err.message });
-        }
+        return require('../controllers/ride.controller').getUserRideHistory(req, res);
     }
 );
 
