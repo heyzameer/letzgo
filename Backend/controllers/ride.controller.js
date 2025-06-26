@@ -30,7 +30,7 @@ module.exports.createRide = async (req, res) => {
         console.log('Pickup Coordinates:', pickupCoordinates);
         console.log('Destination Coordinates:', destinationCoordinates);
         // console.log('Pickup Coordinates org:', pickupCoordinates);
-        const captainsInTheRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd, pickupCoordinates.lng, 20, vehicleType);
+        const captainsInTheRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd, pickupCoordinates.lng, 200, vehicleType);
         ride.otp = "";
         const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user');
         // Send destination coordinates with rideWithUser
