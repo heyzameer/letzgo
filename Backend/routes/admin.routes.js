@@ -37,10 +37,10 @@ router.delete('/delete-user/:userId', adminAuth, adminController.deleteUser);
 router.delete('/delete-captain/:captainId', adminAuth, adminController.deleteCaptain);
 
 //route to create a new admin
-// router.post('/create-admin', [
-//     body('email').isEmail().withMessage('Invalid Email'),
-//     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
-// ], adminController.createAdmin);
+router.post('/create-admin', [
+    body('email').isEmail().withMessage('Invalid Email'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
+], adminController.createAdmin);
 
 
 

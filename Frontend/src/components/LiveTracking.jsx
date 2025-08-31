@@ -14,10 +14,10 @@ const center = {
 const LiveTracking = () => {
     const [ currentPosition, setCurrentPosition ] = useState(center);
 
-    // Use the same libraries array everywhere to avoid Loader error
+   
     const { isLoaded, loadError } = useJsApiLoader({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-        libraries: ['places'] // <-- Use only 'places' everywhere
+        libraries: ['places'] 
     });
 
     useEffect(() => {
