@@ -1,58 +1,52 @@
-import React, { useState,useRef } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useRef, useContext } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { CaptainDataContext } from '../context/CaptainContext'
-import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import logo from '../assets/logoblack.png'
 
-
 const CaptainSignup = () => {
-
   const navigate = useNavigate()
+  const { setCaptain } = useContext(CaptainDataContext)
 
-  const [ email, setEmail ] = useState('')
-  const [ password, setPassword ] = useState('')
-  const [ firstName, setFirstName ] = useState('')
-  const [ lastName, setLastName ] = useState('')
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    vehicleColor: '',
+    vehiclePlate: '',
+    vehicleCapacity: '',
+    vehicleType: ''
+  })
 
-  const [ vehicleColor, setVehicleColor ] = useState('')
-  const [ vehiclePlate, setVehiclePlate ] = useState('')
-  const [ vehicleCapacity, setVehicleCapacity ] = useState('')
-  const [ vehicleType, setVehicleType ] = useState('')
+  const [error, setError] = useState('')
+  const [errors, setErrors] = useState({})
+  const [step, setStep] = useState(1)
+  const [otp, setOtp] = useState('')
+  const [timer, setTimer] = useState(60)
+  const [isLoading, setIsLoading] = useState(false)
+  const timerRef = useRef(null)
 
-  const [error, setError] = useState('');
-  const [errors, setErrors] = useState({});
-  const [step, setStep] = useState(1);
-  const [otp, setOtp] = useState('');
-    const [timer, setTimer] = useState(60)
-    const timerRef = useRef(null)
-    const [message, setMessage] = useState('')
-
-  const { captain, setCaptain } = React.useContext(CaptainDataContext)
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
 
   const validateForm = () => {
-    const newErrors = {};
-    if (!firstName.trim()) newErrors.firstName = "First name is required";
-    else if (firstName.trim().length < 3) newErrors.firstName = "First name must be at least 3 characters long";
-    if (!lastName.trim()) newErrors.lastName = "Last name is required";
-    else if (lastName.trim().length < 3) newErrors.lastName = "Last name must be at least 3 characters long";
-    if (!email.trim()) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Please enter a valid email";
-    if (!password) newErrors.password = "Password is required";
-    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters long";
-    if (!vehicleColor.trim()) newErrors.vehicleColor = "Vehicle color is required";
-    else if (vehicleColor.trim().length < 3) newErrors.vehicleColor = "Vehicle color must be at least 3 characters long";
-    if (!vehiclePlate.trim()) newErrors.vehiclePlate = "Vehicle plate is required";
-    else if (vehiclePlate.trim().length < 3) newErrors.vehiclePlate = "Vehicle plate must be at least 3 characters long";
-    if (!vehicleCapacity) newErrors.vehicleCapacity = "Vehicle capacity is required";
-    else if (!Number(vehicleCapacity) || Number(vehicleCapacity) < 1) newErrors.vehicleCapacity = "Vehicle capacity must be a number greater than 0";
-    if (!vehicleType) newErrors.vehicleType = "Vehicle type is required";
-    else if (!['car', 'auto', 'moto'].includes(vehicleType)) newErrors.vehicleType = "Select a valid vehicle type";
-    return newErrors;
-  };
+    const newErrors = {}
+    if (!form.firstName.trim()) newErrors.firstName = "First name is required"
+    if (!form.lastName.trim()) newErrors.lastName = "Last name is required"
+    if (!form.email.trim()) newErrors.email = "Email is required"
+    else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Valid email is required"
+    if (!form.password) newErrors.password = "Password is required"
+    else if (form.password.length < 6) newErrors.password = "Min 6 characters"
+    if (!form.vehicleColor.trim()) newErrors.vehicleColor = "Color required"
+    if (!form.vehiclePlate.trim()) newErrors.vehiclePlate = "Plate required"
+    if (!form.vehicleCapacity) newErrors.vehicleCapacity = "Capacity required"
+    if (!form.vehicleType) newErrors.vehicleType = "Type required"
+    return newErrors
+  }
 
-
-   const startTimer = () => {
+  const startTimer = () => {
     setTimer(60)
     if (timerRef.current) clearInterval(timerRef.current)
     timerRef.current = setInterval(() => {
@@ -66,259 +60,296 @@ const CaptainSignup = () => {
     }, 1000)
   }
 
-
   const captainData = {
-      fullname: {
-        firstname: firstName,
-        lastname: lastName
-      },
-      email: email,
-      password: password,
-      vehicle: {
-        color: vehicleColor,
-        plate: vehiclePlate,
-        capacity: vehicleCapacity,
-        vehicleType: vehicleType
-      }
-    };
-
+    fullname: { firstname: form.firstName, lastname: form.lastName },
+    email: form.email,
+    password: form.password,
+    vehicle: {
+      color: form.vehicleColor,
+      plate: form.vehiclePlate,
+      capacity: form.vehicleCapacity,
+      vehicleType: form.vehicleType
+    }
+  }
 
   const submitHandler = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+    setError('')
+    const validationErrors = validateForm()
+    setErrors(validationErrors)
+    if (Object.keys(validationErrors).length > 0) return
 
-    const validationErrors = validateForm();
-    setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) {
-      setError("Please fix the errors below.");
-      return;
-    }
-
-    
-
+    setIsLoading(true)
     try {
-      // Step 1: Send registration request to get OTP
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/captains/register`, captainData);
-
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/captains/register`, captainData)
       if (response.status === 200) {
-        setStep(2);
-        setError('');
-        startTimer();
+        setStep(2)
+        startTimer()
       }
     } catch (err) {
-      if (err.response && err.response.status === 400) {
-        setError(err.response?.data?.errors?.[0]?.msg || err.response.data.message || 'Something went wrong');
-      } else {
-        setError('Server error. Please try again later.');
-      }
+      setError(err.response?.data?.message || 'Something went wrong')
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
-   const handleResendOtp = async () => {
-      setError('')
-      setMessage('')
-      try {
-        // Use the same newUser object as registration
-        await axios.post(`${import.meta.env.VITE_BASE_URL}/api/captains/register`, captainData)
-        setMessage('OTP resent to your email.')
-        startTimer()
-      } catch (err) {
-        setError(err?.response?.data?.message || 'Failed to resend OTP.')
-      }
+  const handleResendOtp = async () => {
+    setError('')
+    try {
+      await axios.post(`${import.meta.env.VITE_BASE_URL}/api/captains/register`, captainData)
+      startTimer()
+    } catch (err) {
+      setError('Failed to resend OTP')
     }
+  }
 
-  // OTP verification handler
   const handleOtpVerify = async (e) => {
-    e.preventDefault();
-    setError('');
-    if (!otp || otp.length < 4) {
-      setError('Please enter a valid OTP.');
-      return;
-    }
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
     try {
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/captains/verify-otp`, {
-        email,
+        email: form.email,
         otp
-      });
+      })
       if (response.status === 201) {
-        const data = response.data;
-        setCaptain(data.captain);
-        localStorage.setItem('token', data.token);
-        navigate('/captain-home');
-        setEmail('');
-        setFirstName('');
-        setLastName('');
-        setPassword('');
-        setVehicleColor('');
-        setVehiclePlate('');
-        setVehicleCapacity('');
-        setVehicleType('');
-        setOtp('');
+        setCaptain(response.data.captain)
+        localStorage.setItem('token', response.data.token)
+        navigate('/captain-home')
       }
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-        'Invalid OTP or server error. Please try again.'
-      );
+      setError(err?.response?.data?.message || 'Invalid OTP')
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className='py-5 px-5 h-screen flex flex-col justify-between'>
-      <div>
-        <img
-          className="w-30 h-30 mx-auto object-contain "
-          src={logo}
-          alt="LetzGo Logo"
-        />
-        {step === 1 && (
-          <form onSubmit={submitHandler}>
-            {error && <p className="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded">{error}</p>}
+    <div className='min-h-screen bg-[#F0FDF4]/30 flex flex-col items-center justify-center p-4 sm:p-8 md:p-12 font-sans'>
+      <div className='w-full max-w-xl bg-white rounded-[40px] shadow-[0_32px_64px_-16px_rgba(16,185,129,0.1)] overflow-hidden border border-emerald-100 transition-all duration-700 hover:shadow-[0_48px_80px_-24px_rgba(16,185,129,0.15)]'>
+        <div className='p-10 sm:p-14'>
+          <div className='flex flex-col items-center mb-12 text-center'>
+            <div className='bg-emerald-600 p-6 rounded-3xl mb-8 shadow-2xl shadow-emerald-600/30 transform hover:scale-105 transition-transform duration-500'>
+              <img
+                className="w-16 h-16 object-contain invert"
+                src={logo}
+                alt="LetzGo Logo"
+              />
+            </div>
+            <h1 className='text-4xl font-black text-slate-900 tracking-tight mb-3'>
+              {step === 1 ? 'Become a Captain' : 'Verify Email'}
+            </h1>
+            <p className='text-slate-400 text-lg font-medium max-w-xs'>
+              {step === 1 ? 'Start your journey with LetzGo and earn more' : `Enter the 6-digit code sent to ${form.email}`}
+            </p>
+          </div>
 
-            <h3 className='text-lg w-full  font-medium mb-2'>What's our Captain's name</h3>
-            <div className='flex gap-4 mb-7'>
-              <div className="w-1/2">
-                <input
-                  required
-                  className='bg-[#eeeeee] w-full rounded-lg px-4 py-2 border  text-lg placeholder:text-base'
-                  type="text"
-                  placeholder='First name'
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                />
-                {errors.firstName && <div className="text-red-600 text-xs mt-1">{errors.firstName}</div>}
+        {step === 1 ? (
+          <form onSubmit={submitHandler} className='space-y-6 flex-1'>
+            {error && (
+              <div className='bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-xl animate-in fade-in slide-in-from-top-2'>
+                <p className='text-xs font-bold'>{error}</p>
               </div>
-              <div className="w-1/2">
+            )}
+
+            <div className='space-y-5'>
+              <p className='text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1'>Name & Contact</p>
+              <div className='grid grid-cols-2 gap-5'>
+                <div className='group relative'>
+                  <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors'>
+                    <i className="ri-user-line text-lg"></i>
+                  </div>
+                  <input
+                    name="firstName"
+                    value={form.firstName}
+                    onChange={handleChange}
+                    className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all outline-none font-bold text-slate-900 ${errors.firstName ? 'border-red-300 bg-red-50' : 'border-slate-100 focus:border-emerald-600'}`}
+                    placeholder='First Name'
+                  />
+                </div>
+                <div className='group relative'>
+                  <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors'>
+                    <i className="ri-user-fill text-lg"></i>
+                  </div>
+                  <input
+                    name="lastName"
+                    value={form.lastName}
+                    onChange={handleChange}
+                    className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all outline-none font-bold text-slate-900 ${errors.lastName ? 'border-red-300 bg-red-50' : 'border-slate-100 focus:border-emerald-600'}`}
+                    placeholder='Last Name'
+                  />
+                </div>
+              </div>
+              <div className='group relative'>
+                <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors'>
+                  <i className="ri-mail-line text-lg"></i>
+                </div>
                 <input
-                  required
-                  className='bg-[#eeeeee] w-full  rounded-lg px-4 py-2 border  text-lg placeholder:text-base'
-                  type="text"
-                  placeholder='Last name'
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all outline-none font-bold text-slate-900 ${errors.email ? 'border-red-300 bg-red-50' : 'border-slate-100 focus:border-emerald-600'}`}
+                  placeholder='Email Address'
                 />
-                {errors.lastName && <div className="text-red-600 text-xs mt-1">{errors.lastName}</div>}
+              </div>
+              <div className='group relative'>
+                <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors'>
+                  <i className="ri-lock-2-line text-lg"></i>
+                </div>
+                <input
+                  name="password"
+                  type="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all outline-none font-bold text-slate-900 ${errors.password ? 'border-red-300 bg-red-50' : 'border-slate-100 focus:border-emerald-600'}`}
+                  placeholder='Password'
+                />
               </div>
             </div>
 
-            <h3 className='text-lg font-medium mb-2'>What's our Captain's email</h3>
-            <input
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className='bg-[#eeeeee] mb-1 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
-              type="email"
-              placeholder='email@example.com'
-            />
-            {errors.email && <div className="text-red-600 text-xs mb-2">{errors.email}</div>}
-
-            <h3 className='text-lg font-medium mb-2'>Enter Password</h3>
-            <input
-              className='bg-[#eeeeee] mb-1 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required type="password"
-              placeholder='password'
-            />
-            {errors.password && <div className="text-red-600 text-xs mb-2">{errors.password}</div>}
-
-            <h3 className='text-lg font-medium mb-2'>Vehicle Information</h3>
-            <div className='flex gap-4 mb-7'>
-              <div className="w-1/2">
-                <input
-                  required
-                  className='bg-[#eeeeee] w-full rounded-lg px-4 py-2 border text-lg placeholder:text-base'
-                  type="text"
-                  placeholder='Vehicle Color'
-                  value={vehicleColor}
-                  onChange={(e) => setVehicleColor(e.target.value)}
-                />
-                {errors.vehicleColor && <div className="text-red-600 text-xs mt-1">{errors.vehicleColor}</div>}
+            <div className='space-y-5 pt-4'>
+              <p className='text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1'>Vehicle Details</p>
+              <div className='grid grid-cols-2 gap-5'>
+                <div className='group relative'>
+                  <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors'>
+                    <i className="ri-palette-line text-lg"></i>
+                  </div>
+                  <input
+                    name="vehicleColor"
+                    value={form.vehicleColor}
+                    onChange={handleChange}
+                    className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all outline-none font-bold text-slate-900 ${errors.vehicleColor ? 'border-red-300 bg-red-50' : 'border-slate-100 focus:border-emerald-600'}`}
+                    placeholder='Color'
+                  />
+                </div>
+                <div className='group relative'>
+                  <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors'>
+                    <i className="ri-hashtag text-lg"></i>
+                  </div>
+                  <input
+                    name="vehiclePlate"
+                    value={form.vehiclePlate}
+                    onChange={handleChange}
+                    className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all outline-none font-bold text-slate-900 ${errors.vehiclePlate ? 'border-red-300 bg-red-50' : 'border-slate-100 focus:border-emerald-600'}`}
+                    placeholder='Plate'
+                  />
+                </div>
               </div>
-              <div className="w-1/2">
-                <input
-                  required
-                  className='bg-[#eeeeee] w-full rounded-lg px-4 py-2 border text-lg placeholder:text-base'
-                  type="text"
-                  placeholder='Vehicle Plate'
-                  value={vehiclePlate}
-                  onChange={(e) => setVehiclePlate(e.target.value)}
-                />
-                {errors.vehiclePlate && <div className="text-red-600 text-xs mt-1">{errors.vehiclePlate}</div>}
+              <div className='grid grid-cols-2 gap-5'>
+                <div className='group relative'>
+                  <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors'>
+                    <i className="ri-group-line text-lg"></i>
+                  </div>
+                  <input
+                    name="vehicleCapacity"
+                    type="number"
+                    value={form.vehicleCapacity}
+                    onChange={handleChange}
+                    className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all outline-none font-bold text-slate-900 ${errors.vehicleCapacity ? 'border-red-300 bg-red-50' : 'border-slate-100 focus:border-emerald-600'}`}
+                    placeholder='Capacity'
+                  />
+                </div>
+                <div className='group relative'>
+                  <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors'>
+                    <i className="ri-taxi-line text-lg"></i>
+                  </div>
+                  <select
+                    name="vehicleType"
+                    value={form.vehicleType}
+                    onChange={handleChange}
+                    className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all outline-none font-bold text-slate-900 appearance-none ${errors.vehicleType ? 'border-red-300 bg-red-50' : 'border-slate-100 focus:border-emerald-600'}`}
+                  >
+                    <option value="" disabled>Type</option>
+                    <option value="car">Car</option>
+                    <option value="auto">Auto</option>
+                    <option value="moto">Moto</option>
+                  </select>
+                </div>
               </div>
             </div>
-            <div className='flex gap-4 mb-7'>
-              <div className="w-1/2">
-                <input
-                  required
-                  className='bg-[#eeeeee] w-full rounded-lg px-4 py-2 border text-lg placeholder:text-base'
-                  type="number"
-                  placeholder='Vehicle Capacity'
-                  value={vehicleCapacity}
-                  onChange={(e) => setVehicleCapacity(e.target.value)}
-                />
-                {errors.vehicleCapacity && <div className="text-red-600 text-xs mt-1">{errors.vehicleCapacity}</div>}
+
+            <button
+              disabled={isLoading}
+              className='w-full bg-emerald-600 text-white font-black py-5 rounded-[24px] text-sm tracking-[0.2em] transition-all duration-500 hover:bg-emerald-700 hover:shadow-2xl hover:shadow-emerald-600/20 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-4 group mt-8'
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>CREATE ACCOUNT</span>
+                  <span className='group-hover:translate-x-1.5 transition-transform'>→</span>
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleOtpVerify} className='space-y-8 animate-in fade-in slide-in-from-bottom-4'>
+            {error && (
+              <div className='bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-xl'>
+                <p className='text-xs font-bold'>{error}</p>
               </div>
-              <div className="w-1/2">
-                <select
-                  required
-                  className='bg-[#eeeeee] w-full rounded-lg px-4 py-2 border text-lg placeholder:text-base'
-                  value={vehicleType}
-                  onChange={(e) => setVehicleType(e.target.value)}
+            )}
+
+            <div className='flex justify-center gap-2'>
+              <input
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className='w-full max-w-[200px] bg-white border-2 border-slate-100 focus:border-black text-center text-3xl font-black py-4 rounded-2xl outline-none tracking-[0.5em]'
+                maxLength={6}
+                placeholder="000000"
+                autoFocus
+              />
+            </div>
+
+            <div className="text-center">
+              {timer > 0 ? (
+                <p className="text-sm font-bold text-slate-400">Resend code in <span className="text-black">{timer}s</span></p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  className="text-sm font-black text-black underline underline-offset-4 decoration-2"
                 >
-                  <option value="" disabled>Select Vehicle Type</option>
-                  <option value="car">Car</option>
-                  <option value="auto">Auto</option>
-                  <option value="moto">Moto</option>
-                </select>
-                {errors.vehicleType && <div className="text-red-600 text-xs mt-1">{errors.vehicleType}</div>}
-              </div>
+                  Resend OTP
+                </button>
+              )}
             </div>
 
             <button
-              className='bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base cursor-pointer'
-            >Create Captain Account</button>
+              disabled={isLoading}
+              className='w-full bg-black text-white font-black py-4 rounded-2xl shadow-xl shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3'
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>VERIFY & CONTINUE</span>
+                  <i className="ri-checkbox-circle-line"></i>
+                </>
+              )}
+            </button>
           </form>
         )}
-        {step === 2 && (
-          <form onSubmit={handleOtpVerify}>
-            <h3 className='text-lg font-medium mb-2'>Enter OTP sent to your email</h3>
-            <input
-              className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-              type="text"
-              placeholder="Enter OTP"
-            />
-              <div className="flex items-center mb-4">
-              <span className="text-xs text-gray-600">
-                {timer > 0
-                  ? `Resend OTP in ${timer}s`
-                  : (
-                    <button
-                      type="button"
-                      className="bg-black text-white p-2 rounded font-semibold"
-                      onClick={handleResendOtp}
-                    >
-                      Resend OTP
-                    </button>
-                  )
-                }
-              </span>
-            </div>
-            <button
-              className='bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base cursor-pointer'
-            >Verify OTP</button>
-          </form>
-        )}
-        <p className='text-center'>Already have a account? <Link to='/captain-login' className='text-blue-600'>Login here</Link></p>
-      </div>
-      <div>
-        <p className='text-[10px] mt-6 leading-tight'>This site is protected by reCAPTCHA and the <span className='underline'>Google Privacy
-          Policy</span> and <span className='underline'>Terms of Service apply</span>.</p>
+
+          <p className='mt-12 text-center text-slate-500 text-sm font-medium'>
+            Already have an account?{' '}
+            <Link to='/captain-login' className='font-black text-emerald-600 hover:underline underline-offset-4 decoration-2'>
+              Login here
+            </Link>
+          </p>
+        </div>
+
+        <div className='bg-slate-50/50 p-8 border-t border-slate-100'>
+          <p className='text-[10px] text-slate-400 leading-relaxed text-center font-medium max-w-sm mx-auto'>
+            By signing up, you agree to our 
+            <span className='text-slate-900 font-bold'> Terms of Service</span> and 
+            <span className='text-slate-900 font-bold'> Privacy Policy</span> apply.
+          </p>
+        </div>
       </div>
     </div>
   )
 }
 
-export default CaptainSignup
+export default CaptainSignup

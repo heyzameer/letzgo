@@ -3,56 +3,75 @@ import car from '../assets/car.jpg'
 import auto from '../assets/auto.jpg'
 import bike from '../assets/moto.jpg'
 
-
-
 const ConfirmRide = (props) => {
-    // Select image based on vehicleType
     let vehicleImg = car;
     if (props.vehicleType === 'auto') vehicleImg = auto;
     if (props.vehicleType === 'moto' || props.vehicleType === 'motorcycle' || props.vehicleType === 'bike') vehicleImg = bike;
 
     return (
+        <div className='p-6'>
+            <div className='flex items-center justify-between mb-8'>
+                <h3 className='text-2xl font-black text-slate-900 tracking-tight'>Confirm Ride</h3>
+                <button 
+                    onClick={() => props.setConfirmRidePanel(false)}
+                    className='w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors'
+                >
+                    <i className="ri-arrow-down-s-line text-2xl"></i>
+                </button>
+            </div>
 
+            <div className='flex flex-col items-center'>
+                <div className='w-40 h-40 bg-slate-50 rounded-full flex items-center justify-center mb-8 relative'>
+                    <div className='absolute inset-0 bg-emerald-500/5 rounded-full animate-pulse' />
+                    <img className='h-24 w-auto object-contain relative z-10' src={vehicleImg} alt={props.vehicleType} />
+                </div>
 
-        <div>
-            <h5 className='p-1 text-center w-[93%] absolute top-0' onClick={() => {
-                props.setConfirmRidePanel(false)
-            }}><i className="text-3xl text-gray-200 ri-arrow-down-wide-line"></i></h5>
-            <h3 className='text-2xl font-semibold mb-5'>Confirm your Ride</h3>
-
-            <div className='flex gap-2 justify-between flex-col items-center'>
-                <img className='h-30' src={vehicleImg} alt={props.vehicleType} />
-                <div className='w-full mt-5'>
-                    <div className='flex items-center gap-5 p-3 border-b-2'>
-                        <i className="ri-map-pin-user-fill"></i>
+                <div className='w-full space-y-1 mb-8'>
+                    <div className='flex items-start gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors'>
+                        <div className='w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0'>
+                            <i className="ri-map-pin-user-fill text-xl"></i>
+                        </div>
                         <div>
-                            <h3 className='text-lg font-medium'>Pickup</h3>
-                            <p className='text-sm -mt-1 text-gray-600'>{props.pickup}</p>
+                            <p className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Pickup</p>
+                            <h3 className='text-sm font-bold text-slate-900 mt-0.5 line-clamp-1'>{props.pickup}</h3>
                         </div>
                     </div>
-                    <div className='flex items-center gap-5 p-3 border-b-2'>
-                        <i className="text-lg ri-map-pin-2-fill"></i>
+
+                    <div className='flex items-start gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors'>
+                        <div className='w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shrink-0'>
+                            <i className="ri-map-pin-2-fill text-xl"></i>
+                        </div>
                         <div>
-                            <h3 className='text-lg font-medium'>Destination</h3>
-                            <p className='text-sm -mt-1 text-gray-600'>{props.destination}</p>
+                            <p className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Destination</p>
+                            <h3 className='text-sm font-bold text-slate-900 mt-0.5 line-clamp-1'>{props.destination}</h3>
                         </div>
                     </div>
-                    <div className='flex items-center gap-5 p-3'>
-                        <i className="ri-currency-line"></i>
+
+                    <div className='flex items-start gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors'>
+                        <div className='w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0'>
+                            <i className="ri-bank-card-line text-xl"></i>
+                        </div>
                         <div>
-                            <h3 className='text-lg font-medium'>₹Fare</h3>
-                            <p className='text-sm -mt-1 text-gray-600'>{props.fare[props.vehicleType]}</p>
+                            <p className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Total Fare</p>
+                            <h3 className='text-xl font-black text-slate-900 mt-0.5'>₹{props.fare[props.vehicleType]}</h3>
                         </div>
                     </div>
                 </div>
-                <button onClick={() => {
-                    props.setVehicleFound(true)
-                    props.setConfirmRidePanel(false)
-                    props.createRide()
-                }} className='w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg'>Confirm</button>
-                {/* Show cancel message if present */}
+
+                <button 
+                    onClick={() => {
+                        props.setVehicleFound(true)
+                        props.setConfirmRidePanel(false)
+                        props.createRide()
+                    }} 
+                    className='w-full bg-black text-white font-black py-4 rounded-2xl shadow-xl shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group'
+                >
+                    <span>CONFIRM BOOKING</span>
+                    <i className="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
+                </button>
+
                 {props.cancelMessage && (
-                  <div className="mt-4 text-center text-red-600 font-medium">
+                  <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-xl text-center text-red-600 font-bold text-xs">
                     {props.cancelMessage}
                   </div>
                 )}

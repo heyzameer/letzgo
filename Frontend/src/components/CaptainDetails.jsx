@@ -1,65 +1,52 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext } from 'react'
 import { CaptainDataContext } from '../context/CaptainContext'
-import { useNavigate } from 'react-router-dom'
-import CaptainRideHistoryPanel from './CaptainRideHistoryPanel'
-import useCaptainLogout from '../hooks/useCaptainLogout'
+import useCaptainEarnings from '../hooks/useCaptainEarnings'
+
+const StatCard = ({ icon, value, label, color, loading }) => (
+    <div className="bg-white p-6 rounded-[32px] border border-slate-100 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow w-full">
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl ${color} shrink-0`}>
+            {loading ? (
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+                <i className={icon}></i>
+            )}
+        </div>
+        <div className="min-w-0">
+            <h5 className="text-xl font-black text-slate-900 leading-none truncate">
+                {loading ? '...' : value}
+            </h5>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 truncate">{label}</p>
+        </div>
+    </div>
+)
 
 const CaptainDetails = () => {
-    const navigate = useNavigate();
-    const [historyPanelOpen, setHistoryPanelOpen] = useState(false);
     const { captain } = useContext(CaptainDataContext)
-    const logout = useCaptainLogout();
+    const { stats, loading } = useCaptainEarnings(true)
 
     return (
-        <div >
-            <div className='flex items-center justify-between w-[910px]'>
-                <div className='flex items-center gap-4'>
-                    {/* Captain Name */}
-                    <h4 className='text-lg font-medium capitalize'>
-                        {captain.fullname.firstname + " " + captain.fullname.lastname}
-                    </h4>
-                    {/* Icons side by side */}
-                    <div className='flex gap-3 ml-6'>
-                        <i
-                            className="ri-profile-line text-2xl cursor-pointer"
-                            style={{ color: '#222' }}
-                            onClick={() => navigate('/captain-profile')}
-                        ></i>
-                        <i
-                            className="ri-history-line text-2xl cursor-pointer"
-                            style={{ color: '#222' }}
-                            onClick={() => setHistoryPanelOpen(true)}
-                            title="View Booking History"
-                        ></i>
-                        <i
-                            className="ri-logout-box-line text-2xl cursor-pointer"
-                            style={{ color: '#222' }}
-                            onClick={logout}
-                        ></i>
-                    </div>
-                </div>
-                {/* Right section (optional, currently empty) */}
-                <div></div>
-            </div>
-            <div className='flex p-9 mt-8 bg-gray-100 rounded-xl justify-center gap-5 items-start'>
-                <div className='text-center'>
-                    <i className="text-3xl mb-2 font-thin ri-timer-2-line"></i>
-                    <h5 className='text-lg font-medium'>{captain?.totalRides || 0}</h5>
-                    <p className='text-sm text-gray-600'>Rides</p>
-                </div>
-                <div className='text-center'>
-                    <i className="text-3xl mb-2 font-thin ri-speed-up-line"></i>
-                    <h5 className='text-lg font-medium'>{captain?.totalDistance ? (captain.totalDistance / 1000).toFixed(1) : 0} km</h5>
-                    <p className='text-sm text-gray-600'>Distance Travlled</p>
-                </div>
-                <div className='text-center'>
-                    <i className="text-3xl mb-2 font-thin ri-booklet-line"></i>
-                    <h5 className='text-lg font-medium'>₹{captain?.totalEarnings || 0}</h5>
-                    <p className='text-sm text-gray-600'>Earned</p>
-                </div>
-
-            </div>
-            <CaptainRideHistoryPanel open={historyPanelOpen} setOpen={setHistoryPanelOpen} />
+        <div className='w-full grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8'>
+            <StatCard 
+                icon="ri-steering-2-line" 
+                value={stats?.todayRides || 0} 
+                label="Rides Today" 
+                color="bg-emerald-50 text-emerald-600" 
+                loading={loading}
+            />
+            <StatCard 
+                icon="ri-pin-distance-line" 
+                value={captain?.totalDistance ? (captain.totalDistance / 1000).toFixed(1) : 0} 
+                label="Total Km" 
+                color="bg-orange-50 text-orange-600" 
+                loading={false}
+            />
+            <StatCard 
+                icon="ri-wallet-3-line" 
+                value={`₹${stats?.todayEarnings || 0}`} 
+                label="Earnings Today" 
+                color="bg-indigo-50 text-indigo-600" 
+                loading={loading}
+            />
         </div>
     )
 }

@@ -286,3 +286,79 @@ module.exports.getCaptainRideHistory = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MSG.FAILED_TO_FETCH_CAPTAIN_RIDE_HISTORY, error: err.message });
     }
 }
+
+// Controller for captain earnings stats
+module.exports.getCaptainEarningsStats = async (req, res) => {
+    try {
+        const captainId = req.captain._id;
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfYesterday = new Date(startOfToday);
+        startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+        const startOf7DaysAgo = new Date(startOfToday);
+        startOf7DaysAgo.setDate(startOf7DaysAgo.getDate() - 6); // Includes today
+
+        const stats = await rideModel.aggregate([
+            { $match: { captain: captainId, status: 'completed' } },
+            {
+                $group: {
+                    _id: null,
+                    totalEarnings: { $sum: "$fare" },
+                    todayEarnings: {
+                        $sum: {
+                            $cond: [{ $gte: ["$createdAt", startOfToday] }, "$fare", 0]
+                        }
+                    },
+                    yesterdayEarnings: {
+                        $sum: {
+                            $cond: [
+                                { $and: [{ $gte: ["$createdAt", startOfYesterday] }, { $lt: ["$createdAt", startOfToday] }] },
+                                "$fare",
+                                0
+                            ]
+                        }
+                    },
+                    last7DaysEarnings: {
+                        $sum: {
+                            $cond: [{ $gte: ["$createdAt", startOf7DaysAgo] }, "$fare", 0]
+                        }
+                    },
+                    totalRides: { $sum: 1 },
+                    todayRides: {
+                        $sum: {
+                            $cond: [{ $gte: ["$createdAt", startOfToday] }, 1, 0]
+                        }
+                    }
+                }
+            }
+        ]);
+
+        // Get daily breakdown for charts
+        const dailyBreakdown = await rideModel.aggregate([
+            { $match: { captain: captainId, status: 'completed', createdAt: { $gte: startOf7DaysAgo } } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    earnings: { $sum: "$fare" }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        const result = stats[0] || {
+            totalEarnings: 0,
+            todayEarnings: 0,
+            yesterdayEarnings: 0,
+            last7DaysEarnings: 0,
+            totalRides: 0,
+            todayRides: 0
+        };
+
+        res.status(HTTP_STATUS.OK).json({
+            ...result,
+            dailyBreakdown
+        });
+    } catch (err) {
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Failed to fetch earnings stats', error: err.message });
+    }
+}

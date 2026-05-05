@@ -79,6 +79,26 @@ const captainSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    todayEarnings: {
+        type: Number,
+        default: 0
+    },
+    ridesCompleted: {
+        type: Number,
+        default: 0
+    },
+    onlineTime: {
+        type: String,
+        default: '0h 0m'
+    },
+    cancellationRate: {
+        type: String,
+        default: '0%'
+    },
+    acceptanceRate: {
+        type: String,
+        default: '0%'
+    },
     isBlocked: {
         type: Boolean,
         default: true

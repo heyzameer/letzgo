@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { UserDataContext } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { HomeSkeleton } from '../components/Skeleton'
 
 const UserProtectWrapper = ({
     children
@@ -14,6 +15,7 @@ const UserProtectWrapper = ({
     useEffect(() => {
         if (!token) {
             navigate('/login')
+            return
         }
 
         axios.get(`${import.meta.env.VITE_BASE_URL}/api/users/profile`, {
@@ -27,7 +29,6 @@ const UserProtectWrapper = ({
             }
         })
             .catch(err => {
-                // console.log(err)
                 localStorage.removeItem('token')
                 navigate('/login')
             })
@@ -35,7 +36,7 @@ const UserProtectWrapper = ({
 
     if (isLoading) {
         return (
-            <div>User Loading</div>
+            <HomeSkeleton />
         )
     }
 

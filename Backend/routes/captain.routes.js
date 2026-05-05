@@ -28,6 +28,7 @@ router.post('/login', [
 ], captainController.loginCaptain);
 
 router.get('/profile', auth.authRole('captain'), captainController.getCaptainProfile);
+router.patch('/update-status', auth.authRole('captain'), captainController.updateStatus);
 
 router.put('/profile',
     auth.authRole('captain'),
@@ -56,5 +57,9 @@ router.post('/reset-password',
     body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
     captainController.resetPassword
 );
+
+router.get('/earnings-stats', auth.authRole('captain'), (req, res) => {
+    return require('../controllers/ride.controller').getCaptainEarningsStats(req, res);
+});
 
 module.exports = router;

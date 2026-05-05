@@ -150,18 +150,13 @@ router.get('/current-coordinates-user',
 // Get ride history for a user (with pagination)
 router.get('/user/history',
     authMiddleware.authRole('user'),
-    async (req, res) => {
-        return require('../controllers/ride.controller').getUserRideHistory(req, res);
-    }
+    rideController.getUserRideHistory
 );
 
 // Get ride history for a captain (with pagination)
 router.get('/captain/history',
     authMiddleware.authRole('captain'),
-    async (req, res) => {
-        // Use the controller with pagination
-        return require('../controllers/ride.controller').getCaptainRideHistory(req, res);
-    }
+    rideController.getCaptainRideHistory
 );
 
 module.exports = router;

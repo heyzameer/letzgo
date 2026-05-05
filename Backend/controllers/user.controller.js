@@ -38,12 +38,19 @@ module.exports.registerUser = async (req, res, next) => {
             }
         });
 
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: 'LetzGo Registration OTP',
-            text: `Your OTP for registration is: ${otp}`
-        });
+        try {
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: 'LetzGo Registration OTP',
+                text: `Your OTP for registration is: ${otp}`
+            });
+        } catch (mailError) {
+            console.error('Mail delivery failed, logging OTP to console instead:', mailError.message);
+            console.log('-----------------------------------------');
+            console.log(`REGISTRATION OTP FOR ${email}: ${otp}`);
+            console.log('-----------------------------------------');
+        }
 
         return res.status(HTTP_STATUS.OK).json({ message: MSG.OTP_SENT });
     } catch (error) {
@@ -178,12 +185,19 @@ module.exports.forgotPassword = async (req, res) => {
         }
     });
 
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'User Password Reset OTP',
-        text: `Your OTP for password reset is: ${otp}`
-    });
+    try {
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'User Password Reset OTP',
+            text: `Your OTP for password reset is: ${otp}`
+        });
+    } catch (mailError) {
+        console.error('Mail delivery failed, logging OTP to console instead:', mailError.message);
+        console.log('-----------------------------------------');
+        console.log(`FORGOT PASSWORD OTP FOR ${email}: ${otp}`);
+        console.log('-----------------------------------------');
+    }
 
     res.status(HTTP_STATUS.OK).json({ message: MSG.OTP_SENT });
 };

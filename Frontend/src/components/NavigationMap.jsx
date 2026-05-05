@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { GoogleMap, Marker, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
 
 const GOOGLE_MAPS_LIBRARIES = ['places'];
@@ -9,27 +9,19 @@ const containerStyle = {
 };
 
 const NavigationMap = ({ origin, destination }) => {
-  const [directions, setDirections] = React.useState(null);
-  const [mapRef, setMapRef] = useState(null);
-  const [centered, setCentered] = useState(false);
+  const [directions, setDirections] = useState(null);
+  const [map, setMap] = useState(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
-  // Do NOT auto-center the map on origin/destination changes
-  // Only center when user clicks the button
-
-  useEffect(() => {
+  const fetchDirections = useCallback(() => {
     if (
       isLoaded &&
-      origin &&
-      destination &&
-      typeof origin.lat === 'number' &&
-      typeof origin.lng === 'number' &&
-      typeof destination.lat === 'number' &&
-      typeof destination.lng === 'number'
+      origin?.lat &&
+      destination?.lat
     ) {
       const directionsService = new window.google.maps.DirectionsService();
       directionsService.route(
@@ -41,67 +33,142 @@ const NavigationMap = ({ origin, destination }) => {
         (result, status) => {
           if (status === window.google.maps.DirectionsStatus.OK) {
             setDirections(result);
-          } else {
-            setDirections(null);
           }
         }
       );
-    } else {
-      setDirections(null);
     }
   }, [isLoaded, origin, destination]);
 
-  // Center map only when user clicks the button
-  const handleCenter = () => {
-    if (mapRef && origin) {
-      mapRef.panTo(origin);
-      setCentered(true);
+  useEffect(() => {
+    fetchDirections();
+  }, [fetchDirections]);
+
+  const onCenter = () => {
+    if (map && origin) {
+      map.panTo(origin);
+      map.setZoom(16);
     }
   };
 
-  if (loadError) return <div>Map cannot be loaded right now.</div>;
-  if (!isLoaded) return <div>Loading map...</div>;
+  if (loadError) return <div className="h-full flex items-center justify-center bg-slate-100 text-slate-400 font-bold">Map Error</div>;
+  if (!isLoaded) return <div className="h-full flex items-center justify-center bg-slate-100 text-slate-400 font-bold animate-pulse">Loading Navigation...</div>;
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div className="relative w-full h-full font-sans">
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={origin} // Initial center, but will not auto-pan after mount
-        zoom={13}
-        onLoad={map => setMapRef(map)}
+        center={origin}
+        zoom={14}
+        onLoad={map => setMap(map)}
         options={{
+          disableDefaultUI: true,
           clickableIcons: false,
-          streetViewControl: false,
-          mapTypeControl: false,
+          styles: [
+            {
+                "featureType": "all",
+                "elementType": "labels.text.fill",
+                "stylers": [{ "color": "#7c93a3" }, { "lightness": "-10" }]
+            },
+            {
+                "featureType": "administrative.country",
+                "elementType": "geometry",
+                "stylers": [{ "visibility": "on" }]
+            },
+            {
+                "featureType": "poi",
+                "elementType": "all",
+                "stylers": [{ "visibility": "off" }]
+            },
+            {
+                "featureType": "road",
+                "elementType": "all",
+                "stylers": [{ "saturation": -100 }, { "lightness": 45 }]
+            },
+            {
+                "featureType": "road.highway",
+                "elementType": "all",
+                "stylers": [{ "visibility": "simplified" }]
+            },
+            {
+                "featureType": "water",
+                "elementType": "all",
+                "stylers": [{ "color": "#d2e4f3" }, { "visibility": "on" }]
+            }
+          ]
         }}
       >
-        {directions ? (
-          <DirectionsRenderer directions={directions} />
-        ) : (
-          <>
-            {origin && <Marker position={origin} />}
-            {destination && <Marker position={destination} />}
-          </>
+        {directions && (
+          <DirectionsRenderer 
+            directions={directions} 
+            options={{
+              suppressMarkers: true,
+              polylineOptions: {
+                strokeColor: '#10b981', // Emerald-500
+                strokeWeight: 6,
+                strokeOpacity: 0.8
+              }
+            }} 
+          />
         )}
+
+        {/* Origin / Captain Marker */}
+        <Marker 
+          position={origin} 
+          icon={{
+            url: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png', // Car icon
+            scaledSize: new window.google.maps.Size(40, 40),
+            origin: new window.google.maps.Point(0, 0),
+            anchor: new window.google.maps.Point(20, 20)
+          }}
+        />
+
+        {/* Destination Marker */}
+        <Marker 
+          position={destination} 
+          icon={{
+            url: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png', // Red pin icon
+            scaledSize: new window.google.maps.Size(40, 40),
+            origin: new window.google.maps.Point(0, 0),
+            anchor: new window.google.maps.Point(20, 40)
+          }}
+        />
       </GoogleMap>
-      {/* Center button */}
-      <button
-        style={{
-          position: 'absolute',
-          top: 620,
-          right: 12,
-          zIndex: 10,
-          background: '#fff',
-          border: '1px solid #ccc',
-          borderRadius: 6,
-          padding: '8px 12px',
-          cursor: 'pointer',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-        }}
-        onClick={handleCenter}
+
+      {/* Re-center Button */}
+      <button 
+        onClick={onCenter}
+        className="absolute bottom-32 lg:bottom-10 right-6 lg:right-10 w-12 h-12 lg:w-14 lg:h-14 bg-white rounded-2xl shadow-2xl flex items-center justify-center text-slate-900 hover:bg-slate-50 transition-all active:scale-[0.9] border border-slate-100 group z-30"
+        title="Focus on Location"
       >
-        Center
+        <i className="ri-focus-3-line text-xl lg:text-2xl group-hover:rotate-45 transition-transform"></i>
       </button>
+
+      {/* Floating Info Panel */}
+      {directions && directions.routes[0]?.legs[0] && (
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] lg:w-[400px] bg-slate-900/90 backdrop-blur-md rounded-[28px] p-6 border border-white/10 shadow-2xl z-20 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white">
+                    <i className="ri-navigation-fill text-2xl"></i>
+                </div>
+                <div>
+                    <h4 className="text-white font-black tracking-tight text-lg leading-none">
+                        {directions.routes[0].legs[0].duration.text}
+                    </h4>
+                    <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mt-1.5">
+                        Est. Time to Destination
+                    </p>
+                </div>
+            </div>
+            <div className="text-right">
+                <h4 className="text-emerald-400 font-black tracking-tight text-lg leading-none">
+                    {directions.routes[0].legs[0].distance.text}
+                </h4>
+                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mt-1.5">
+                    Remaining
+                </p>
+            </div>
+        </div>
+      )}
     </div>
   );
 };

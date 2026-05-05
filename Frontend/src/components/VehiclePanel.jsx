@@ -3,59 +3,86 @@ import car from '../assets/car.jpg'
 import auto from '../assets/auto.jpg'
 import bike from '../assets/moto.jpg'
 
-
 const VehiclePanel = (props) => {
+    const vehicles = [
+        {
+            type: 'car',
+            name: 'UberGo',
+            image: car,
+            capacity: 4,
+            time: '2 mins away',
+            desc: 'Affordable, compact rides',
+            price: props.fare.car
+        },
+        {
+            type: 'moto',
+            name: 'Moto',
+            image: bike,
+            capacity: 1,
+            time: '3 mins away',
+            desc: 'Quick & affordable motorcycle rides',
+            price: props.fare.moto
+        },
+        {
+            type: 'auto',
+            name: 'Uber Auto',
+            image: auto,
+            capacity: 3,
+            time: '5 mins away',
+            desc: 'Efficient & breezy auto rides',
+            price: props.fare.auto
+        }
+    ];
+
     return (
-        <div>
-            <i className='ri-arrow-down-wide-line text-2xl absolute right-5 top-5' onClick={() => {
-                props.setVehiclePanel(false)
-
-            }}></i>
-            <h3 className='text-2xl font-semibold mb-5'>Choose a vehicle</h3>
-
-            <div onClick={() => {
-                props.setConfirmRidePanel(true)
-                props.selectVehicle('car')
-                props.setVehiclePanel(false)
-            }} className=' active:border-2 border-gray-400 bg-gray-100 rounded-xl mb-2 flex w-full p-3 items-center justify-between'>
-                <img className='h-12' src={car} alt="Car" />
-                <div className='w-1/2 ml-1/2'>
-                    <h4 className='font-medium text-base'>Car <span><i className='ri-user-3-fill'></i>4</span></h4>
-                    <h5 className='font-medium text-sm'>2 mins away</h5>
-                    <p className='font-medium text-xs text-gray-600'>Affordable compact ride</p>
-                </div>
-                <h2 className='text-xl font-semibold'>₹{props.fare.car}</h2>
+        <div className='p-6'>
+            <div className='flex items-center justify-between mb-8'>
+                <h3 className='text-2xl font-black text-slate-900 tracking-tight'>Choose a vehicle</h3>
+                <button 
+                    onClick={() => props.setVehiclePanel(false)}
+                    className='w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors'
+                >
+                    <i className="ri-arrow-down-s-line text-2xl"></i>
+                </button>
             </div>
 
-            <div onClick={() => {
-                props.setConfirmRidePanel(true)
-                props.selectVehicle('moto')
-                props.setVehiclePanel(false)
-            }} className='active:border-2 bg-gray-100  border-gray-400 rounded-xl mb-2 flex w-full p-3 items-center justify-between'>
-                <img className='h-12' src={bike} alt="Moto" />
-                <div className='w-1/2 ml-1/2'>
-                    <h4 className='font-medium text-base'>Moto <span><i className='ri-user-3-fill'></i>1</span></h4>
-                    <h5 className='font-medium text-sm'>3 mins away</h5>
-                    <p className='font-medium text-xs text-gray-600'>Affordable Motorcycle ride</p>
-                </div>
-                <h2 className='text-xl font-semibold'>₹{props.fare.moto}</h2>
+            <div className='space-y-4 mb-8'>
+                {vehicles.map((v) => (
+                    <div 
+                        key={v.type}
+                        onClick={() => {
+                            props.setConfirmRidePanel(true)
+                            props.selectVehicle(v.type)
+                            props.setVehiclePanel(false)
+                        }} 
+                        className='group flex items-center justify-between p-4 bg-slate-50 rounded-2xl border-2 border-transparent hover:border-black active:scale-[0.98] transition-all cursor-pointer'
+                    >
+                        <div className='flex items-center gap-4'>
+                            <div className='w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-sm overflow-hidden group-hover:scale-105 transition-transform'>
+                                <img className='w-full h-full object-contain' src={v.image} alt={v.name} />
+                            </div>
+                            <div>
+                                <div className='flex items-center gap-2'>
+                                    <h4 className='font-bold text-slate-900'>{v.name}</h4>
+                                    <span className='flex items-center gap-1 px-1.5 py-0.5 bg-slate-200 rounded text-[10px] font-bold text-slate-600'>
+                                        <i className='ri-user-3-fill'></i>{v.capacity}
+                                    </span>
+                                </div>
+                                <p className='text-xs font-bold text-emerald-600 mt-0.5'>{v.time}</p>
+                                <p className='text-[10px] font-medium text-slate-500 mt-0.5'>{v.desc}</p>
+                            </div>
+                        </div>
+                        <h2 className='text-xl font-black text-slate-900'>₹{v.price}</h2>
+                    </div>
+                ))}
             </div>
-
-            <div onClick={() => {
-                props.setConfirmRidePanel(true)
-                props.selectVehicle('auto')
-                props.setVehiclePanel(false)
-            }} className='active:border-2 bg-gray-100  border-gray-400 rounded-xl mb-2 flex w-full p-3 items-center justify-between'>
-                <img className='h-12' src={auto} alt="Auto" />
-                <div className='w-1/2 ml-1/2'>
-                    <h4 className='font-medium text-base'>Auto <span><i className='ri-user-3-fill'></i>3</span></h4>
-                    <h5 className='font-medium text-sm'>6 mins away</h5>
-                    <p className='font-medium text-xs text-gray-600'>Affordable Auto ride</p>
-                </div>
-                <h2 className='text-xl font-semibold'>₹{props.fare.auto}</h2>
-            </div>
+            
+            <p className='text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest'>
+                Prices may vary based on traffic
+            </p>
         </div>
     )
 }
 
 export default VehiclePanel
+

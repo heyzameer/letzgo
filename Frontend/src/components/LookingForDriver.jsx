@@ -3,46 +3,76 @@ import car from '../assets/car.jpg'
 import auto from '../assets/auto.jpg'
 import bike from '../assets/moto.jpg'
 
-
 const LookingForDriver = (props) => {
-    // Select image based on vehicleType
     let vehicleImg = car;
     if (props.vehicleType === 'auto') vehicleImg = auto;
     if (props.vehicleType === 'moto' || props.vehicleType === 'motorcycle' || props.vehicleType === 'bike') vehicleImg = bike;
 
     return (
-        <div>
-            <h5 className='p-1 text-center w-[93%] absolute top-0' onClick={() => {
-                props.setVehicleFound(false)
-            }}><i className="text-3xl text-gray-200 ri-arrow-down-wide-line"></i></h5>
-            <h3 className='text-2xl font-semibold mb-5'>Looking for a Driver</h3>
+        <div className='p-6'>
+            <div className='flex items-center justify-between mb-8'>
+                <h3 className='text-2xl font-black text-slate-900 tracking-tight'>Finding Driver</h3>
+                <button 
+                    onClick={() => props.setVehicleFound(false)}
+                    className='w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors'
+                >
+                    <i className="ri-arrow-down-s-line text-2xl"></i>
+                </button>
+            </div>
 
-            <div className='flex gap-2 justify-between flex-col items-center'>
-                <img className='h-20' src={vehicleImg} alt={props.vehicleType} />
-                <div className='w-full mt-5'>
-                    <div className='flex items-center gap-5 p-3 border-b-2'>
-                        <i className="ri-map-pin-user-fill"></i>
+            <div className='flex flex-col items-center'>
+                <div className='w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-8'>
+                    <div className='h-full bg-black w-1/3 rounded-full animate-[loading_1.5s_infinite_ease-in-out]' />
+                </div>
+
+                <div className='w-40 h-40 bg-slate-50 rounded-full flex items-center justify-center mb-8 relative'>
+                    <div className='absolute inset-0 border-4 border-slate-200 rounded-full border-t-black animate-spin' />
+                    <img className='h-20 w-auto object-contain relative z-10' src={vehicleImg} alt={props.vehicleType} />
+                </div>
+
+                <div className='w-full space-y-1 mb-6'>
+                    <div className='flex items-start gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors'>
+                        <div className='w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0'>
+                            <i className="ri-map-pin-user-fill text-xl"></i>
+                        </div>
                         <div>
-                            <h3 className='text-lg font-medium'>Pickup</h3>
-                            <p className='text-sm -mt-1 text-gray-600'>{props.pickup}</p>
+                            <p className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Pickup</p>
+                            <h3 className='text-sm font-bold text-slate-900 mt-0.5 line-clamp-1'>{props.pickup}</h3>
                         </div>
                     </div>
-                    <div className='flex items-center gap-5 p-3 border-b-2'>
-                        <i className="text-lg ri-map-pin-2-fill"></i>
+
+                    <div className='flex items-start gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors'>
+                        <div className='w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shrink-0'>
+                            <i className="ri-map-pin-2-fill text-xl"></i>
+                        </div>
                         <div>
-                            <h3 className='text-lg font-medium'>Destination</h3>
-                            <p className='text-sm -mt-1 text-gray-600'>{props.destination}</p>
+                            <p className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Destination</p>
+                            <h3 className='text-sm font-bold text-slate-900 mt-0.5 line-clamp-1'>{props.destination}</h3>
                         </div>
                     </div>
-                    <div className='flex items-center gap-5 p-3'>
-                        <i className="ri-currency-line"></i>
+
+                    <div className='flex items-start gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors'>
+                        <div className='w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0'>
+                            <i className="ri-bank-card-line text-xl"></i>
+                        </div>
                         <div>
-                            <h3 className='text-lg font-medium'>₹Fare</h3>
-                            <p className='text-sm -mt-1 text-gray-600'>{props.fare[props.vehicleType]}</p>
+                            <p className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Fare Amount</p>
+                            <h3 className='text-xl font-black text-slate-900 mt-0.5'>₹{props.fare[props.vehicleType]}</h3>
                         </div>
                     </div>
                 </div>
+
+                <p className='text-xs font-bold text-slate-400 uppercase tracking-[0.2em] animate-pulse'>
+                    Notifying nearby captains...
+                </p>
             </div>
+
+            <style>{`
+                @keyframes loading {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(300%); }
+                }
+            `}</style>
         </div>
     )
 }

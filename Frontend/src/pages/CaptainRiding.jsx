@@ -1,5 +1,6 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useContext } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { SocketContext } from '../context/SocketContext'
 import FinishRide from '../components/FinishRide'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
@@ -9,61 +10,53 @@ import NavigationMap from '../components/NavigationMap'
 
 const CaptainRiding = () => {
     const [finishRidePanel, setFinishRidePanel] = useState(false)
+    const [isPaid, setIsPaid] = useState(false)
     const finishRidePanelRef = useRef(null)
     const location = useLocation()
     const rideData = location.state?.ride
+    const { socket } = useContext(SocketContext)
 
-    // State for current (captain) location from backend
+    useEffect(() => {
+        socket.on('payment-success', (data) => {
+            if (data.rideId === rideData?._id) {
+                setIsPaid(true)
+            }
+        })
+        return () => socket.off('payment-success')
+    }, [socket, rideData?._id])
+
     const [currentCoords, setCurrentCoords] = useState(null);
-
-    // Get destination coordinates from rideData
     const destinationCoords = rideData?.destinationLocation
         ? { lat: rideData.destinationLocation.ltd, lng: rideData.destinationLocation.lng }
         : null;
 
-    // Fetch current coordinates from backend API every 5 seconds
     useEffect(() => {
-        let intervalId;
         const fetchCurrentCoords = async () => {
             try {
-                const res = await axios.get(
-                    `${import.meta.env.VITE_BASE_URL}/api/ride/current-coordinates-captain`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem('token')}`
-                        }
-                    }
-                );
-                console.log("Current coordinates response:", res.data);
-                if (res.data && typeof res.data.lat === 'number' && typeof res.data.lng === 'number') {
-                    setCurrentCoords({ lat: res.data.lat, lng: res.data.lng });
-                }
-            } catch (err) {
-                // Optionally handle error
-            }
+                const res = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/ride/current-coordinates-captain`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (res.data && res.data.lat) setCurrentCoords({ lat: res.data.lat, lng: res.data.lng });
+            } catch (err) {}
         };
         fetchCurrentCoords();
-        intervalId = setInterval(fetchCurrentCoords, 500000);
+        const intervalId = setInterval(fetchCurrentCoords, 10000);
         return () => clearInterval(intervalId);
     }, []);
 
-    useGSAP(function () {
-        if (finishRidePanel) {
+    useGSAP(() => {
+        if (finishRidePanelRef.current) {
             gsap.to(finishRidePanelRef.current, {
-                transform: 'translateY(0)'
-            })
-        } else {
-            gsap.to(finishRidePanelRef.current, {
-                transform: 'translateY(100%)'
-            })
+                y: finishRidePanel ? '0%' : '100%',
+                duration: 0.6,
+                ease: 'power4.out'
+            });
         }
-    }, [finishRidePanel])
-    console.log("Ride data in CaptainRiding:", rideData);
+    }, [finishRidePanel]);
 
     return (
-        <div className='h-screen'>
-            {/* Map at the top */}
-            <div className='w-full' style={{ height: '79%' }}>
+        <div className='h-screen relative overflow-hidden bg-slate-50 font-sans'>
+            <div className='h-screen w-full z-0'>
                 {currentCoords && destinationCoords ? (
                     <NavigationMap origin={currentCoords} destination={destinationCoords} />
                 ) : (
@@ -71,26 +64,34 @@ const CaptainRiding = () => {
                 )}
             </div>
 
-            {/* Complete Ride panel at the bottom */}
-            <div className='w-full flex-1 flex flex-col justify-end'>
-                <div
-                    className='h-55 p-6 flex items-center justify-between relative bg-yellow-400 pt-10 cursor-pointer'
+            <div className='fixed bottom-0 left-0 right-0 z-10 p-6 pointer-events-none'>
+                <div 
                     onClick={() => setFinishRidePanel(true)}
+                    className='pointer-events-auto bg-emerald-500 rounded-[32px] p-6 shadow-2xl shadow-emerald-500/30 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all group'
                 >
-                    <h5 className='p-1 text-center w-[90%] absolute top-0'>
-                        <i className="text-3xl text-gray-800 ri-arrow-up-wide-line"></i>
-                    </h5>
-                    <h4 className='text-xl font-semibold'>{rideData?.distance ? `${(rideData.distance / 1000).toFixed(1)} KM away` : 'Ride in progress'}</h4>
-                    {!finishRidePanel && (<button className='bg-green-600 text-white font-semibold p-3 px-10 rounded-lg'>Complete Ride</button>
-)}
+                    <div className='flex items-center gap-4'>
+                        <div className='w-12 h-12 bg-black/10 rounded-2xl flex items-center justify-center backdrop-blur-sm'>
+                            <i className="ri-map-pin-2-fill text-black text-2xl group-hover:scale-110 transition-transform"></i>
+                        </div>
+                        <div>
+                            <h4 className='text-lg font-black text-black leading-tight'>
+                                {rideData?.distance ? `${(rideData.distance / 1000).toFixed(1)} KM` : 'On Trip'}
+                            </h4>
+                            <p className='text-xs font-bold text-black/60 uppercase tracking-widest'>Distance Left</p>
+                        </div>
+                    </div>
+                    
+                    <button className='bg-black text-white px-6 py-3 rounded-2xl font-black text-sm tracking-widest shadow-xl shadow-black/20'>
+                        FINISH RIDE
+                    </button>
                 </div>
             </div>
 
-            {/* Finish Ride popup panel */}
             <div
                 ref={finishRidePanelRef}
-                className='fixed z-[500] bottom-0 translate-y-full bg-white px-3 py-10 pt-12'
+                className='fixed inset-x-0 bottom-0 z-30 bg-white rounded-t-[40px] shadow-[0_-20px_50px_-20px_rgba(0,0,0,0.2)] translate-y-full'
             >
+                <div className='w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-4' />
                 <FinishRide
                     ride={rideData}
                     setFinishRidePanel={setFinishRidePanel}

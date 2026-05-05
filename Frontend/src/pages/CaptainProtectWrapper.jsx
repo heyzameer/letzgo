@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { CaptainDataContext } from '../context/CaptainContext'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { HomeSkeleton } from '../components/Skeleton'
 
 const CaptainProtectWrapper = ({
     children
@@ -12,12 +13,10 @@ const CaptainProtectWrapper = ({
     const { captain, setCaptain } = useContext(CaptainDataContext)
     const [isLoading, setIsLoading] = useState(true)
 
-
-
-
     useEffect(() => {
         if (!token) {
             navigate('/captain-login')
+            return
         }
 
         axios.get(`${import.meta.env.VITE_BASE_URL}/api/captains/profile`, {
@@ -31,21 +30,16 @@ const CaptainProtectWrapper = ({
             }
         })
             .catch(err => {
-
                 localStorage.removeItem('token')
                 navigate('/captain-login')
             })
     }, [token])
 
-
-
     if (isLoading) {
         return (
-            <div>Captain Loading...</div>
+            <HomeSkeleton />
         )
     }
-
-
 
     return (
         <>

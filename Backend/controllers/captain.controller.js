@@ -39,13 +39,20 @@ module.exports.registerCaptain = async (req, res, next) => {
         }
     });
 
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'LetzGo Captain Registration OTP',
-        text: `Your OTP for registration is: ${otp}`
-    });
-    console.log(`OTP sent to ${email}: ${otp}`);
+    try {
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'LetzGo Captain Registration OTP',
+            text: `Your OTP for registration is: ${otp}`
+        });
+    } catch (mailError) {
+        console.error('Mail delivery failed, logging OTP to console instead:', mailError.message);
+        console.log('-----------------------------------------');
+        console.log(`CAPTAIN REGISTRATION OTP FOR ${email}: ${otp}`);
+        console.log('-----------------------------------------');
+    }
+    console.log(`OTP status logged for ${email}`);
 
     return res.status(HTTP_STATUS.OK).json({ message: MSG.OTP_SENT });
 }
@@ -116,6 +123,24 @@ module.exports.getCaptainProfile = async (req, res, next) => {
     res.status(HTTP_STATUS.OK).json({ captain: { ...captainObj, password: '' } });
 }
 
+module.exports.updateStatus = async (req, res, next) => {
+    const { status } = req.body;
+    if (![ 'active', 'inactive' ].includes(status)) {
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MSG.INVALID_STATUS });
+    }
+
+    try {
+        const captain = await captainModel.findByIdAndUpdate(
+            req.captain._id,
+            { $set: { status } },
+            { new: true }
+        );
+        res.status(HTTP_STATUS.OK).json({ status: captain.status, message: 'Status updated' });
+    } catch (error) {
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Failed to update status' });
+    }
+}
+
 module.exports.updateCaptainProfile = async (req, res, next) => {
     const { fullname, email, vehicle } = req.body;
     const updates = {};
@@ -184,12 +209,19 @@ module.exports.forgotPassword = async (req, res) => {
         }
     });
 
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Captain Password Reset OTP',
-        text: `Your OTP for password reset is: ${otp}`
-    });
+    try {
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Captain Password Reset OTP',
+            text: `Your OTP for password reset is: ${otp}`
+        });
+    } catch (mailError) {
+        console.error('Mail delivery failed, logging OTP to console instead:', mailError.message);
+        console.log('-----------------------------------------');
+        console.log(`CAPTAIN FORGOT PASSWORD OTP FOR ${email}: ${otp}`);
+        console.log('-----------------------------------------');
+    }
 
     res.status(HTTP_STATUS.OK).json({ message: MSG.OTP_SENT });
 };

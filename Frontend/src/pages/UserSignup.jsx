@@ -136,118 +136,189 @@ const UserSignup = () => {
   };
 
   return (
-    <div>
-      <div className='p-7 h-screen flex flex-col justify-between'>
-        <div>
-          <img
-            className="w-30 h-30 mx-auto object-contain "
-            src={logo}
-            alt="LetzGo Logo"
-          />
+    <div className='min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4 sm:p-8 md:p-12 font-sans'>
+      <div className='w-full max-w-xl bg-white rounded-[40px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden border border-slate-100 transition-all duration-700 hover:shadow-[0_48px_80px_-24px_rgba(0,0,0,0.15)]'>
+        <div className='p-10 sm:p-14'>
+          <div className='flex flex-col items-center mb-12 text-center'>
+            <div className='bg-black p-6 rounded-3xl mb-8 shadow-2xl shadow-black/30 transform hover:scale-105 transition-transform duration-500'>
+              <img
+                className="w-16 h-16 object-contain invert"
+                src={logo}
+                alt="LetzGo Logo"
+              />
+            </div>
+            <h1 className='text-4xl font-black text-slate-900 tracking-tight mb-3'>Create Account</h1>
+            <p className='text-slate-400 text-lg font-medium max-w-xs'>Join LetzGo today and experience the future of mobility</p>
+          </div>
+
           {error && (
-            <div className="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded">{error}</div>
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-5 rounded-2xl mb-8 animate-in fade-in slide-in-from-top-4 duration-300" role="alert">
+              <div className='flex items-center gap-4'>
+                <span className='text-2xl'>⚠️</span>
+                <div>
+                  <p className="font-bold text-sm uppercase tracking-wider">Registration Error</p>
+                  <p className="text-xs opacity-90 mt-0.5">{error}</p>
+                </div>
+              </div>
+            </div>
           )}
 
           {step === 1 && (
-            <form onSubmit={submitHandler}>
-              <h3 className='text-lg w-1/2  font-medium mb-2'>What's your name</h3>
-              <div className='flex gap-4 mb-7'>
-                <div className="w-1/2">
-                  <input
-                    required
-                    className='bg-[#eeeeee] w-full rounded-lg px-4 py-2 border  text-lg placeholder:text-base'
-                    type="text"
-                    placeholder='First name'
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                  {errors.firstName && <div className="text-red-600 text-xs mt-1">{errors.firstName}</div>}
-                </div>
-                <div className="w-1/2">
-                  <input
-                    required
-                    className='bg-[#eeeeee] w-full  rounded-lg px-4 py-2 border  text-lg placeholder:text-base'
-                    type="text"
-                    placeholder='Last name'
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                  {errors.lastName && <div className="text-red-600 text-xs mt-1">{errors.lastName}</div>}
+            <form onSubmit={submitHandler} className='space-y-8'>
+              <div className='space-y-3'>
+                <label className='block text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1'>Full Name</label>
+                <div className='flex gap-5'>
+                  <div className="w-1/2 group relative">
+                    <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-black transition-colors'>
+                      <i className="ri-user-line text-lg"></i>
+                    </div>
+                    <input
+                      required
+                      className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all duration-300 outline-none text-slate-900 font-medium ${
+                        errors.firstName ? 'border-red-300 bg-red-50/30' : 'border-slate-200 group-hover:border-slate-300 focus:border-black focus:ring-4 focus:ring-black/5'
+                      }`}
+                      type="text"
+                      placeholder='First name'
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
+                    {errors.firstName && <p className="text-red-500 text-[10px] mt-2 ml-1 font-bold uppercase tracking-wider">{errors.firstName}</p>}
+                  </div>
+                  <div className="w-1/2 group relative">
+                    <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-black transition-colors'>
+                      <i className="ri-user-fill text-lg"></i>
+                    </div>
+                    <input
+                      required
+                      className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all duration-300 outline-none text-slate-900 font-medium ${
+                        errors.lastName ? 'border-red-300 bg-red-50/30' : 'border-slate-200 group-hover:border-slate-300 focus:border-black focus:ring-4 focus:ring-black/5'
+                      }`}
+                      type="text"
+                      placeholder='Last name'
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
+                    {errors.lastName && <p className="text-red-500 text-[10px] mt-2 ml-1 font-bold uppercase tracking-wider">{errors.lastName}</p>}
+                  </div>
                 </div>
               </div>
 
-              <h3 className='text-lg font-medium mb-2'>What's your email</h3>
-              <input
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className='bg-[#eeeeee] mb-1 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
-                type="email"
-                placeholder='email@example.com'
-              />
-              {errors.email && <div className="text-red-600 text-xs mb-2">{errors.email}</div>}
+              <div className='group relative'>
+                <label className='block text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1'>Email Address</label>
+                <div className='relative'>
+                  <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-black transition-colors'>
+                    <i className="ri-mail-line text-lg"></i>
+                  </div>
+                  <input
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all duration-300 outline-none text-slate-900 font-medium ${
+                      errors.email ? 'border-red-300 bg-red-50/30' : 'border-slate-200 group-hover:border-slate-300 focus:border-black focus:ring-4 focus:ring-black/5'
+                    }`}
+                    type="email"
+                    placeholder='name@example.com'
+                  />
+                </div>
+                {errors.email && <p className="text-red-500 text-[10px] mt-2 ml-1 font-bold uppercase tracking-wider">{errors.email}</p>}
+              </div>
 
-              <h3 className='text-lg font-medium mb-2'>Enter Password</h3>
-              <input
-                className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required type="password"
-                placeholder='password'
-              />
-              {errors.password && <div className="text-red-600 text-xs mb-2">{errors.password}</div>}
+              <div className='group relative'>
+                <label className='block text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1'>Password</label>
+                <div className='relative'>
+                  <div className='absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-black transition-colors'>
+                    <i className="ri-lock-2-line text-lg"></i>
+                  </div>
+                  <input
+                    className={`w-full pl-12 pr-5 py-4 rounded-2xl border transition-all duration-300 outline-none text-slate-900 font-medium ${
+                      errors.password ? 'border-red-300 bg-red-50/30' : 'border-slate-200 group-hover:border-slate-300 focus:border-black focus:ring-4 focus:ring-black/5'
+                    }`}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required 
+                    type="password"
+                    placeholder='Min. 6 characters'
+                  />
+                </div>
+                {errors.password && <p className="text-red-500 text-[10px] mt-2 ml-1 font-bold uppercase tracking-wider">{errors.password}</p>}
+              </div>
 
               <button
-                className='bg-[#111] cursor-pointer text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
-              >Create account</button>
+                className='w-full bg-black text-white font-black py-5 rounded-[24px] text-sm tracking-[0.2em] transition-all duration-500 hover:bg-slate-800 hover:shadow-2xl hover:shadow-black/20 active:scale-[0.98] flex items-center justify-center gap-4 group mt-6'
+              >
+                <span>CREATE ACCOUNT</span>
+                <span className='group-hover:translate-x-1.5 transition-transform'>→</span>
+              </button>
             </form>
           )}
 
           {step === 2 && (
-            <>
-            <form onSubmit={handleOtpVerify}>
-              <h3 className='text-lg font-medium mb-2'>Enter OTP sent to your email</h3>
-              <input
-                className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                required
-                type="text"
-                placeholder="Enter OTP"
-              />
-              <div className="flex items-center mb-4">
-              <span className="text-xs text-gray-600">
-                {timer > 0
-                  ? `Resend OTP in ${timer}s`
-                  : (
+            <div className='space-y-10'>
+              <form onSubmit={handleOtpVerify} className='space-y-8'>
+                <div className='text-center'>
+                  <h3 className='text-lg font-black text-slate-900 tracking-tight mb-2'>Verify your email</h3>
+                  <p className='text-slate-400 text-sm font-medium'>We've sent a 6-digit code to {email}</p>
+                </div>
+                
+                <div className='group'>
+                  <input
+                    className='w-full px-6 py-6 rounded-3xl border border-slate-200 text-center text-4xl font-black tracking-[0.5em] transition-all duration-300 outline-none focus:border-black focus:ring-8 focus:ring-black/5 placeholder:text-slate-100'
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    required
+                    type="text"
+                    placeholder="000000"
+                    maxLength={6}
+                  />
+                </div>
+
+                <div className="flex flex-col items-center gap-6">
+                  {timer > 0 ? (
+                    <div className='flex items-center gap-3 bg-slate-50 px-5 py-3 rounded-2xl'>
+                      <div className='w-2 h-2 bg-slate-400 rounded-full animate-pulse' />
+                      <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Resend in {timer}s</span>
+                    </div>
+                  ) : (
                     <button
                       type="button"
-                      className="bg-black text-white p-2 rounded font-semibold"
+                      className="text-xs font-black text-black hover:text-slate-600 uppercase tracking-widest underline underline-offset-8 decoration-2"
                       onClick={handleResendOtp}
                     >
-                      Resend OTP
+                      Resend Verification Code
                     </button>
-                  )
-                }
-              </span>
+                  )}
+                  
+                  <button
+                    className='w-full bg-black text-white font-black py-5 rounded-[24px] text-sm tracking-[0.2em] transition-all duration-500 hover:bg-slate-800 hover:shadow-2xl hover:shadow-black/20 active:scale-[0.98]'
+                  >VERIFY & FINISH</button>
+                </div>
+              </form>
+              
+              {message && (
+                <div className="bg-emerald-50 text-emerald-700 px-5 py-3 rounded-2xl text-center text-xs font-black uppercase tracking-wider animate-in fade-in duration-500">
+                  {message}
+                </div>
+              )}
             </div>
-              <button
-                className= 'cursor-pointer bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
-              >Verify OTP</button>
-            </form>
-            
-            {message && <div className="text-green-600 text-center">{message}</div>}
-            </>
           )}
 
-          <p className='text-center'>Already have a account? <Link to='/login' className='text-blue-600'>Login here</Link></p>
+          <p className='mt-12 text-center text-slate-500 text-sm font-medium'>
+            Already have an account?{' '}
+            <Link to='/login' className='font-black text-black hover:underline underline-offset-4 decoration-2'>
+              Login here
+            </Link>
+          </p>
         </div>
-        <div>
-          <p className='text-[10px] leading-tight'>This site is protected by reCAPTCHA and the <span className='underline'>Google Privacy
-            Policy</span> and <span className='underline'>Terms of Service apply</span>.</p>
+
+        <div className='bg-slate-50/50 p-8 border-t border-slate-100'>
+          <p className='text-[10px] text-slate-400 leading-relaxed text-center font-medium max-w-sm mx-auto'>
+            This site is protected by reCAPTCHA and the 
+            <span className='text-slate-900 font-bold'> Google Privacy Policy</span> and 
+            <span className='text-slate-900 font-bold'> Terms of Service</span> apply.
+          </p>
         </div>
       </div>
-    </div >
+    </div>
   )
 }
 
