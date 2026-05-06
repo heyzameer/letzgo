@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '../assets/logoblack.png'
-import heroCar from './letzgo_hero_car_v3_facing_left_1778070708061.png'
+import heroCar from '../assets/hero-car.png'
 
 const Start = () => {
   const navigate = useNavigate()
